@@ -1,0 +1,243 @@
+// ==========================================
+// HOLOSCONNECT - Prisma Schema
+// Banco de dados: PostgreSQL via Supabase
+// 
+// Decisão arquitetural: Usamos dois URLs separados:
+// - DATABASE_URL com pgbouncer para queries normais (connection pooling)
+// - DIRECT_URL para migrations (precisa de conexão direta)
+// ==========================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// ==========================================
+// ENUMS
+// ==========================================
+
+enum Role {
+  ADMIN
+  TERAPEUTA
+  PACIENTE
+}
+
+enum AppointmentStatus {
+  PENDENTE
+  CONFIRMADO
+  CONCLUIDO
+  CANCELADO
+}
+
+enum Modality {
+  ONLINE
+  PRESENCIAL
+  AMBOS
+}
+
+enum Gender {
+  MASCULINO
+  FEMININO
+  NAO_BINARIO
+  PREFIRO_NAO_INFORMAR
+}
+
+// ==========================================
+// MODELS
+// ==========================================
+
+model User {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(PACIENTE)
+  active    Boolean  @default(true)
+  avatarUrl String?
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  therapistProfile  TherapistProfile?
+  patientProfile    PatientProfile?
+  refreshTokens     RefreshToken[]
+  notifications     Notification[]
+  sentReviews       Review[]          @relation("ReviewAuthor")
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  revoked   Boolean  @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("refresh_tokens")
+}
+
+// ==========================================
+// PERFIL DO TERAPEUTA
+// ==========================================
+
+model TherapistProfile {
+  id          String    @id @default(cuid())
+  userId      String    @unique
+  bio         String?   @db.Text
+  therapies   String[]  // Array de especialidades
+  price       Decimal   @db.Decimal(10, 2)
+  modality    Modality  @default(AMBOS)
+  location    String?
+  city        String?
+  state       String?
+  rating      Float     @default(0)
+  reviewCount Int       @default(0)
+  approved    Boolean   @default(false)
+  featured    Boolean   @default(false)
+  yearsExp    Int?
+  certifications String[]
+  languages   String[]  @default(["Português"])
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments Appointment[] @relation("TherapistAppointments")
+  reviews      Review[]      @relation("TherapistReviews")
+  availability Availability[]
+
+  @@map("therapist_profiles")
+}
+
+// ==========================================
+// DISPONIBILIDADE DO TERAPEUTA (calendário)
+// ==========================================
+
+model Availability {
+  id           String   @id @default(cuid())
+  therapistId  String
+  dayOfWeek    Int      // 0=Domingo, 1=Segunda, ... 6=Sábado
+  startTime    String   // "09:00"
+  endTime      String   // "18:00"
+  slotDuration Int      @default(60) // minutos por sessão
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@unique([therapistId, dayOfWeek, startTime])
+  @@map("availability")
+}
+
+// ==========================================
+// PERFIL DO PACIENTE
+// ==========================================
+
+model PatientProfile {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  birthDate DateTime?
+  gender    Gender?
+  // Anamnese armazenada como JSON para flexibilidade futura
+  anamnese  Json?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments Appointment[] @relation("PatientAppointments")
+
+  @@map("patient_profiles")
+}
+
+// ==========================================
+// AGENDAMENTOS
+// Decisão: Commission e platformRevenue calculados automaticamente
+// quando status muda para CONFIRMADO, usando a taxa global configurada
+// ==========================================
+
+model Appointment {
+  id              String            @id @default(cuid())
+  therapistId     String
+  patientId       String
+  date            DateTime
+  durationMinutes Int               @default(60)
+  status          AppointmentStatus @default(PENDENTE)
+  price           Decimal           @db.Decimal(10, 2)
+  commissionRate  Decimal           @db.Decimal(5, 2) // % no momento do agendamento
+  commission      Decimal?          @db.Decimal(10, 2) // valor calculado
+  therapistNet    Decimal?          @db.Decimal(10, 2) // valor líquido do terapeuta
+  platformRevenue Decimal?          @db.Decimal(10, 2)
+  notes           String?           @db.Text
+  cancelReason    String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  therapist TherapistProfile @relation("TherapistAppointments", fields: [therapistId], references: [id])
+  patient   PatientProfile   @relation("PatientAppointments", fields: [patientId], references: [id])
+  review    Review?
+
+  @@map("appointments")
+}
+
+// ==========================================
+// AVALIAÇÕES
+// ==========================================
+
+model Review {
+  id            String   @id @default(cuid())
+  appointmentId String   @unique
+  therapistId   String
+  authorId      String
+  rating        Int      // 1-5
+  comment       String?  @db.Text
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  appointment Appointment      @relation(fields: [appointmentId], references: [id], onDelete: Cascade)
+  therapist   TherapistProfile @relation("TherapistReviews", fields: [therapistId], references: [id])
+  author      User             @relation("ReviewAuthor", fields: [authorId], references: [id])
+
+  @@map("reviews")
+}
+
+// ==========================================
+// CONFIGURAÇÕES GLOBAIS DA PLATAFORMA
+// ==========================================
+
+model PlatformConfig {
+  id               String  @id @default(cuid())
+  commissionRate   Decimal @db.Decimal(5, 2) @default(10.00) // % padrão 10%
+  maintenanceMode  Boolean @default(false)
+  allowNewSignups  Boolean @default(true)
+  updatedAt        DateTime @updatedAt
+  updatedBy        String?
+
+  @@map("platform_config")
+}
+
+// ==========================================
+// NOTIFICAÇÕES
+// ==========================================
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  title     String
+  message   String   @db.Text
+  type      String   @default("INFO") // INFO | SUCCESS | WARNING | APPOINTMENT
+  read      Boolean  @default(false)
+  link      String?
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("notifications")
+}
