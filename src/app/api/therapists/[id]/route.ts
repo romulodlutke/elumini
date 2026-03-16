@@ -1,72 +1,83 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSessionFromRequest } from '@/lib/auth'
-import { z } from 'zod'
+import { Modality } from '@prisma/client'
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
-  try {
-    const therapist = await prisma.therapistProfile.findUnique({
-      where: { id: params.id },
-      include: {
-        user: {
-          select: { id: true, name: true, email: true, avatarUrl: true, phone: true, createdAt: true },
-        },
-        availability: {
-          where: { active: true },
-          orderBy: { dayOfWeek: 'asc' },
-        },
-        reviews: {
-          include: {
-            author: { select: { name: true, avatarUrl: true } },
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 10,
-        },
-      },
-    })
-
-    if (!therapist) {
-      return NextResponse.json({ success: false, error: 'Terapeuta não encontrado' }, { status: 404 })
-    }
-
-    return NextResponse.json({ success: true, data: therapist })
-  } catch (error) {
-    console.error('[GET THERAPIST]', error)
-    return NextResponse.json({ success: false, error: 'Erro interno' }, { status: 500 })
-  }
+function countWords(s: string): number {
+  return s
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean).length
 }
 
 const updateSchema = z.object({
-  bio: z.string().optional(),
-  therapies: z.array(z.string()).optional(),
-  price: z.number().positive().optional(),
-  modality: z.enum(['ONLINE', 'PRESENCIAL', 'AMBOS']).optional(),
-  location: z.string().optional(),
-  city: z.string().optional(),
-  state: z.string().optional(),
-  yearsExp: z.number().optional(),
-  certifications: z.array(z.string()).optional(),
+  bio: z
+    .string()
+    .max(2500)
+    .optional()
+    .nullable()
+    .refine(
+      (v) =>
+        v == null ||
+        v.trim() === '' ||
+        (countWords(v) >= 100 && countWords(v) <= 300),
+      'A descrição profissional deve ter entre 100 e 300 palavras'
+    ),
+  price: z.number().min(0).optional(),
+  modality: z.nativeEnum(Modality).optional(),
+  location: z.string().max(200).optional().nullable(),
+  city: z.string().max(100).optional().nullable(),
+  state: z.string().max(2).optional().nullable(),
+  country: z.string().max(100).optional().nullable(),
+  professionalName: z.string().max(150).optional().nullable(),
+  nationality: z.string().max(100).optional().nullable(),
+  documentId: z.string().max(100).optional().nullable(),
   languages: z.array(z.string()).optional(),
+  yearsExp: z.number().int().min(0).optional().nullable(),
+  therapies: z.array(z.string()).optional(),
+  certifications: z.array(z.string()).optional(),
+  sessionsPerMonthGoal: z.number().int().min(0).optional().nullable(),
+  publicTargetDescription: z.string().max(2000).optional().nullable(),
+  // Dados de contato
+  whatsapp: z.string().max(30).optional().nullable(),
+  professionalEmail: z.string().email().optional().nullable().or(z.literal('')),
+  instagram: z.string().max(150).optional().nullable(),
+  facebook: z.string().max(250).optional().nullable(),
+  websiteUrl: z.string().url().optional().nullable().or(z.literal('')),
+  // Preço oficial da sessão base
+  minSessionPrice: z.number().min(0).optional().nullable(),
+  maxSessionPrice: z.number().min(0).optional().nullable(),
+  baseCurrency: z.string().max(10).optional().nullable(),
+  allowPromos: z.boolean().optional(),
+  minPromoPrice: z.number().min(0).optional().nullable(),
+  timezone: z.string().max(80).optional().nullable(),
+  wantCampaigns: z.boolean().optional(),
+  allowAutoScheduling: z.boolean().optional(),
 })
 
-export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
   try {
     const session = await getSessionFromRequest(request)
     if (!session) {
       return NextResponse.json({ success: false, error: 'Não autenticado' }, { status: 401 })
     }
 
-    const therapist = await prisma.therapistProfile.findUnique({
+    const profile = await prisma.therapistProfile.findUnique({
       where: { id: params.id },
-      select: { userId: true },
+      include: { targetAudience: true },
     })
 
-    if (!therapist) {
-      return NextResponse.json({ success: false, error: 'Terapeuta não encontrado' }, { status: 404 })
+    if (!profile) {
+      return NextResponse.json({ success: false, error: 'Perfil não encontrado' }, { status: 404 })
     }
 
-    // Apenas o próprio terapeuta ou admin pode atualizar
-    if (session.sub !== therapist.userId && session.role !== 'ADMIN') {
+    if (profile.userId !== session.sub && session.role !== 'ADMIN') {
       return NextResponse.json({ success: false, error: 'Sem permissão' }, { status: 403 })
     }
 
@@ -74,17 +85,63 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     const validated = updateSchema.safeParse(body)
 
     if (!validated.success) {
-      return NextResponse.json({ success: false, error: validated.error.errors[0].message }, { status: 400 })
+      return NextResponse.json(
+        { success: false, error: validated.error.errors[0].message },
+        { status: 400 }
+      )
     }
 
-    const updated = await prisma.therapistProfile.update({
-      where: { id: params.id },
-      data: { ...validated.data, modality: validated.data.modality as any },
-    })
+    const { publicTargetDescription, ...profileData } = validated.data
 
-    return NextResponse.json({ success: true, data: updated })
+    const updatePayload: Record<string, unknown> = {}
+    if (profileData.bio !== undefined) updatePayload.bio = profileData.bio
+    if (profileData.price !== undefined) updatePayload.price = profileData.price
+    if (profileData.modality !== undefined) updatePayload.modality = profileData.modality
+    if (profileData.location !== undefined) updatePayload.location = profileData.location
+    if (profileData.city !== undefined) updatePayload.city = profileData.city
+    if (profileData.state !== undefined) updatePayload.state = profileData.state
+    if (profileData.country !== undefined) updatePayload.country = profileData.country
+    if (profileData.professionalName !== undefined) updatePayload.professionalName = profileData.professionalName
+    if (profileData.nationality !== undefined) updatePayload.nationality = profileData.nationality
+    if (profileData.documentId !== undefined) updatePayload.documentId = profileData.documentId
+    if (profileData.languages !== undefined) updatePayload.languages = profileData.languages
+    if (profileData.yearsExp !== undefined) updatePayload.yearsExp = profileData.yearsExp
+    if (profileData.therapies !== undefined) updatePayload.therapies = profileData.therapies
+    if (profileData.certifications !== undefined) updatePayload.certifications = profileData.certifications
+    if (profileData.sessionsPerMonthGoal !== undefined) updatePayload.sessionsPerMonthGoal = profileData.sessionsPerMonthGoal
+    if (profileData.whatsapp !== undefined) updatePayload.whatsapp = profileData.whatsapp || null
+    if (profileData.professionalEmail !== undefined) updatePayload.professionalEmail = profileData.professionalEmail === '' ? null : profileData.professionalEmail
+    if (profileData.instagram !== undefined) updatePayload.instagram = profileData.instagram || null
+    if (profileData.facebook !== undefined) updatePayload.facebook = profileData.facebook || null
+    if (profileData.websiteUrl !== undefined) updatePayload.websiteUrl = profileData.websiteUrl === '' ? null : profileData.websiteUrl
+    if (profileData.minSessionPrice !== undefined) updatePayload.minSessionPrice = profileData.minSessionPrice
+    if (profileData.maxSessionPrice !== undefined) updatePayload.maxSessionPrice = profileData.maxSessionPrice
+    if (profileData.baseCurrency !== undefined) updatePayload.baseCurrency = profileData.baseCurrency || null
+    if (profileData.allowPromos !== undefined) updatePayload.allowPromos = profileData.allowPromos
+    if (profileData.minPromoPrice !== undefined) updatePayload.minPromoPrice = profileData.minPromoPrice
+    if (profileData.timezone !== undefined) updatePayload.timezone = profileData.timezone || null
+    if (profileData.wantCampaigns !== undefined) updatePayload.wantCampaigns = profileData.wantCampaigns
+    if (profileData.allowAutoScheduling !== undefined) updatePayload.allowAutoScheduling = profileData.allowAutoScheduling
+
+    await prisma.$transaction([
+      prisma.therapistProfile.update({
+        where: { id: params.id },
+        data: updatePayload,
+      }),
+      ...(publicTargetDescription !== undefined
+        ? [
+            prisma.therapistTargetAudience.upsert({
+              where: { therapistId: params.id },
+              create: { therapistId: params.id, specialNeeds: publicTargetDescription || null },
+              update: { specialNeeds: publicTargetDescription || null },
+            }),
+          ]
+        : []),
+    ])
+
+    return NextResponse.json({ success: true, message: 'Perfil atualizado' })
   } catch (error) {
-    console.error('[UPDATE THERAPIST]', error)
+    console.error('[PATCH THERAPIST PROFILE]', error)
     return NextResponse.json({ success: false, error: 'Erro interno' }, { status: 500 })
   }
 }

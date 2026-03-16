@@ -1,7 +1,7 @@
 // ==========================================
-// HOLOSCONNECT - Prisma Schema
+// EA LUMINI - Prisma Schema
 // Banco de dados: PostgreSQL via Supabase
-// 
+//
 // Decisão arquitetural: Usamos dois URLs separados:
 // - DATABASE_URL com pgbouncer para queries normais (connection pooling)
 // - DIRECT_URL para migrations (precisa de conexão direta)
@@ -52,22 +52,23 @@ enum Gender {
 // ==========================================
 
 model User {
-  id        String   @id @default(cuid())
+  id        String    @id @default(cuid())
   name      String
-  email     String   @unique
+  email     String    @unique
   password  String
-  role      Role     @default(PACIENTE)
-  active    Boolean  @default(true)
+  role      Role      @default(PACIENTE)
+  active    Boolean   @default(true)
   avatarUrl String?
   phone     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  birthDate DateTime? // Data de nascimento (terapeuta/paciente)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
-  therapistProfile  TherapistProfile?
-  patientProfile    PatientProfile?
-  refreshTokens     RefreshToken[]
-  notifications     Notification[]
-  sentReviews       Review[]          @relation("ReviewAuthor")
+  therapistProfile TherapistProfile?
+  patientProfile   PatientProfile?
+  refreshTokens    RefreshToken[]
+  notifications    Notification[]
+  sentReviews      Review[]          @relation("ReviewAuthor")
 
   @@map("users")
 }
@@ -90,29 +91,59 @@ model RefreshToken {
 // ==========================================
 
 model TherapistProfile {
-  id          String    @id @default(cuid())
-  userId      String    @unique
-  bio         String?   @db.Text
-  therapies   String[]  // Array de especialidades
-  price       Decimal   @db.Decimal(10, 2)
-  modality    Modality  @default(AMBOS)
-  location    String?
-  city        String?
-  state       String?
-  rating      Float     @default(0)
-  reviewCount Int       @default(0)
-  approved    Boolean   @default(false)
-  featured    Boolean   @default(false)
-  yearsExp    Int?
-  certifications String[]
-  languages   String[]  @default(["Português"])
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @updatedAt
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  bio                   String?  @db.Text
+  therapies             String[] // Array de especialidades
+  price                 Decimal  @db.Decimal(10, 2)
+  modality              Modality @default(AMBOS)
+  location              String?
+  city                  String?
+  state                 String?
+  country               String?  // País
+  nationality           String?  // Nacionalidade
+  professionalName      String?  // Nome como deseja aparecer publicamente
+  documentId            String?  // Documento de identidade / Passaporte
+  rating                 Float    @default(0)
+  reviewCount            Int      @default(0)
+  approved               Boolean  @default(false)
+  featured               Boolean  @default(false)
+  yearsExp               Int?
+  certifications         String[]
+  languages              String[] @default(["Português"])
+  whatsapp               String? // WhatsApp com código do país: +5511999999999
+  professionalEmail     String? // Email profissional (pode ser diferente do login)
+  instagram             String?
+  facebook              String?
+  websiteUrl            String? // Site pessoal/profissional
+  greenApiInstanceId    String? // Green API instance ID
+  greenApiToken         String? // Green API token
+  sessionsPerMonthGoal  Int?    // objetivo: quantidade de sessões por mês
+  // Preço oficial da sessão base
+  minSessionPrice       Decimal? @db.Decimal(10, 2) // Preço mínimo da sessão
+  maxSessionPrice       Decimal? @db.Decimal(10, 2) // Preço máximo da sessão
+  baseCurrency          String?  @default("BRL")    // Moeda
+  allowPromos           Boolean  @default(false)    // Autoriza promoções
+  minPromoPrice         Decimal? @db.Decimal(10, 2) // Preço mínimo permitido em promoções
+  timezone               String?  @default("America/Sao_Paulo") // Fuso horário para disponibilidade/agendamento
+  wantCampaigns          Boolean  @default(false)  // Deseja aparecer em campanhas publicitárias
+  allowAutoScheduling    Boolean  @default(false)  // Autoriza que o sistema agende automaticamente
+  createdAt              DateTime @default(now())
+  updatedAt              DateTime @updatedAt
 
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  appointments Appointment[] @relation("TherapistAppointments")
-  reviews      Review[]      @relation("TherapistReviews")
-  availability Availability[]
+  user               User                         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  appointments       Appointment[]                @relation("TherapistAppointments")
+  reviews            Review[]                     @relation("TherapistReviews")
+  availability       Availability[]
+  services           TherapistService[]
+  consent            TherapistConsent?
+  adminData          TherapistAdminData?
+  aiConfig           TherapistAIConfig?
+  targetAudience     TherapistTargetAudience?
+  marketingMaterials TherapistMarketingMaterial[]
+  paymentMethods     TherapistPaymentMethod[]
+  paymentDetails     TherapistPaymentDetails?
+  certificates       TherapistCertificate[]
 
   @@map("therapist_profiles")
 }
@@ -124,9 +155,9 @@ model TherapistProfile {
 model Availability {
   id           String   @id @default(cuid())
   therapistId  String
-  dayOfWeek    Int      // 0=Domingo, 1=Segunda, ... 6=Sábado
-  startTime    String   // "09:00"
-  endTime      String   // "18:00"
+  dayOfWeek    Int // 0=Domingo, 1=Segunda, ... 6=Sábado
+  startTime    String // "09:00"
+  endTime      String // "18:00"
   slotDuration Int      @default(60) // minutos por sessão
   active       Boolean  @default(true)
   createdAt    DateTime @default(now())
@@ -142,14 +173,14 @@ model Availability {
 // ==========================================
 
 model PatientProfile {
-  id        String   @id @default(cuid())
-  userId    String   @unique
+  id        String    @id @default(cuid())
+  userId    String    @unique
   birthDate DateTime?
   gender    Gender?
   // Anamnese armazenada como JSON para flexibilidade futura
   anamnese  Json?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   appointments Appointment[] @relation("PatientAppointments")
@@ -159,29 +190,29 @@ model PatientProfile {
 
 // ==========================================
 // AGENDAMENTOS
-// Decisão: Commission e platformRevenue calculados automaticamente
-// quando status muda para CONFIRMADO, usando a taxa global configurada
 // ==========================================
 
 model Appointment {
   id              String            @id @default(cuid())
   therapistId     String
   patientId       String
+  serviceId       String?
   date            DateTime
   durationMinutes Int               @default(60)
   status          AppointmentStatus @default(PENDENTE)
   price           Decimal           @db.Decimal(10, 2)
-  commissionRate  Decimal           @db.Decimal(5, 2) // % no momento do agendamento
-  commission      Decimal?          @db.Decimal(10, 2) // valor calculado
-  therapistNet    Decimal?          @db.Decimal(10, 2) // valor líquido do terapeuta
+  commissionRate  Decimal           @db.Decimal(5, 2)
+  commission      Decimal?          @db.Decimal(10, 2)
+  therapistNet    Decimal?          @db.Decimal(10, 2)
   platformRevenue Decimal?          @db.Decimal(10, 2)
   notes           String?           @db.Text
   cancelReason    String?
-  createdAt       DateTime          @default(now())
-  updatedAt       DateTime          @updatedAt
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
 
-  therapist TherapistProfile @relation("TherapistAppointments", fields: [therapistId], references: [id])
-  patient   PatientProfile   @relation("PatientAppointments", fields: [patientId], references: [id])
+  therapist TherapistProfile   @relation("TherapistAppointments", fields: [therapistId], references: [id])
+  patient   PatientProfile     @relation("PatientAppointments", fields: [patientId], references: [id])
+  service   TherapistService?  @relation(fields: [serviceId], references: [id], onDelete: SetNull)
   review    Review?
 
   @@map("appointments")
@@ -196,7 +227,7 @@ model Review {
   appointmentId String   @unique
   therapistId   String
   authorId      String
-  rating        Int      // 1-5
+  rating        Int
   comment       String?  @db.Text
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -213,12 +244,12 @@ model Review {
 // ==========================================
 
 model PlatformConfig {
-  id               String  @id @default(cuid())
-  commissionRate   Decimal @db.Decimal(5, 2) @default(10.00) // % padrão 10%
-  maintenanceMode  Boolean @default(false)
-  allowNewSignups  Boolean @default(true)
-  updatedAt        DateTime @updatedAt
-  updatedBy        String?
+  id              String   @id @default(cuid())
+  commissionRate  Decimal  @default(10.00) @db.Decimal(5, 2)
+  maintenanceMode Boolean  @default(false)
+  allowNewSignups Boolean  @default(true)
+  updatedAt       DateTime @updatedAt
+  updatedBy       String?
 
   @@map("platform_config")
 }
@@ -232,7 +263,7 @@ model Notification {
   userId    String
   title     String
   message   String   @db.Text
-  type      String   @default("INFO") // INFO | SUCCESS | WARNING | APPOINTMENT
+  type      String   @default("INFO")
   read      Boolean  @default(false)
   link      String?
   createdAt DateTime @default(now())
@@ -240,4 +271,181 @@ model Notification {
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("notifications")
+}
+
+// ==========================================
+// EA LUMINI — EXTENDED THERAPIST MODELS
+// ==========================================
+
+enum TherapistLevel {
+  BASIC
+  CERTIFIED
+  PREMIUM
+  FOUNDER
+}
+
+enum TherapistStatus {
+  ACTIVE
+  INACTIVE
+  REVIEW
+}
+
+enum PaymentMethod {
+  PIX
+  CREDITO
+  DEBITO
+  BOLETO
+  TRANSFERENCIA
+  PAYPAL
+  STRIPE
+  MERCADOPAGO
+  PREX
+  CRIPTOMOEDA
+  DINHEIRO
+}
+
+model TherapistService {
+  id              String   @id @default(cuid())
+  therapistId     String
+  name            String
+  description     String?  @db.Text
+  problemsHelped  String?  @db.Text // Problemas que ajuda a resolver (ex: ansiedade, bloqueios emocionais, abundância, saúde)
+  durationMinutes Int
+  price           Decimal  @db.Decimal(10, 2)
+  promoPrice      Decimal? @db.Decimal(10, 2)
+  currency        String   @default("BRL")
+  modality        Modality @default(AMBOS)
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  therapist   TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+  appointments Appointment[]
+
+  @@map("therapist_services")
+}
+
+model TherapistConsent {
+  id                   String    @id @default(cuid())
+  therapistId          String    @unique
+  termsAccepted        Boolean   @default(false)
+  termsAcceptedAt      DateTime?
+  privacyAccepted      Boolean   @default(false)
+  privacyAcceptedAt    DateTime?
+  imageRightsAccepted  Boolean   @default(false)
+  imageRightsAt        DateTime?
+  automationConsent    Boolean   @default(false)
+  automationConsentAt  DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@map("therapist_consents")
+}
+
+model TherapistAdminData {
+  id                    String           @id @default(cuid())
+  therapistId            String          @unique
+  therapistCode          String?         @unique
+  level                  TherapistLevel  @default(BASIC)
+  status                 TherapistStatus @default(REVIEW)
+  completenessScore     Int             @default(0)
+  missingFields          String[]       @default([])
+  promoAuthorized        Boolean         @default(false)
+  automationAuthorized   Boolean         @default(false)
+  internalNotes          String?         @db.Text
+  country                String?         @default("BR")
+  timezone               String?         @default("America/Sao_Paulo")
+  createdAt              DateTime        @default(now())
+  updatedAt              DateTime        @updatedAt
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@map("therapist_admin_data")
+}
+
+model TherapistAIConfig {
+  id                   String   @id @default(cuid())
+  therapistId          String   @unique
+  shortPitch           String?  @db.Text
+  top3Benefits         String[] @default([])
+  mainProblemsTreated  String[] @default([])
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@map("therapist_ai_configs")
+}
+
+model TherapistTargetAudience {
+  id           String   @id @default(cuid())
+  therapistId  String   @unique
+  ageGroups    String[] @default([])
+  genders      String[] @default([])
+  languages    String[] @default(["Português"])
+  conditions   String[] @default([])
+  specialNeeds String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@map("therapist_target_audiences")
+}
+
+model TherapistMarketingMaterial {
+  id          String   @id @default(cuid())
+  therapistId String
+  type        String
+  url         String
+  caption     String?
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@map("therapist_marketing_materials")
+}
+
+model TherapistPaymentMethod {
+  id          String        @id @default(cuid())
+  therapistId String
+  method      PaymentMethod
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@unique([therapistId, method])
+  @@map("therapist_payment_methods")
+}
+
+// Dados para recebimento (titular, banco, conta, Pix) — 1:1 com terapeuta
+model TherapistPaymentDetails {
+  id                String   @id @default(cuid())
+  therapistId       String   @unique
+  accountHolderName String?  // Nome do titular
+  bankName          String?  // Banco
+  accountNumber     String?  // Número da conta
+  pixKey            String?  // Chave Pix / Alias
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@map("therapist_payment_details")
+}
+
+// Certificados em arquivo (upload) — visíveis no perfil público
+model TherapistCertificate {
+  id           String   @id @default(cuid())
+  therapistId  String
+  name         String   // rótulo ex.: "Curso de Reiki"
+  fileUrl      String   // URL pública no storage
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  therapist TherapistProfile @relation(fields: [therapistId], references: [id], onDelete: Cascade)
+
+  @@map("therapist_certificates")
 }

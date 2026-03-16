@@ -96,7 +96,7 @@ export default function AdminCommissionPage() {
                   <span className="font-medium">R$ 200,00</span>
                 </div>
                 <div className="flex justify-between text-red-600">
-                  <span>Comissão HolosConnect ({parseFloat(newRate)}%)</span>
+                  <span>Comissão EALumini ({parseFloat(newRate)}%)</span>
                   <span className="font-medium">- R$ {(200 * parseFloat(newRate) / 100).toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between text-green-700 border-t border-surface-200 pt-2 font-semibold">

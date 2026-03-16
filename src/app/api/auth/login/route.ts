@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
@@ -54,7 +56,7 @@ export async function POST(request: NextRequest) {
     })
 
     const cookieOptions = getAuthCookieOptions()
-    response.cookies.set('access_token', accessToken, { ...cookieOptions, maxAge: 15 * 60 })
+    response.cookies.set('access_token', accessToken, { ...cookieOptions, maxAge: 8 * 60 * 60 })
     response.cookies.set('refresh_token', refreshToken, { ...cookieOptions, maxAge: 7 * 24 * 60 * 60 })
 
     return response

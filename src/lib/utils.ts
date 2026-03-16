@@ -7,12 +7,17 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Formatar moeda brasileira
-export function formatCurrency(value: number | string | null | undefined): string {
-  if (value === null || value === undefined) return 'R$ 0,00'
+// Formatar moeda (BRL por padrão)
+export function formatCurrency(
+  value: number | string | null | undefined,
+  currency: string = 'BRL'
+): string {
+  if (value === null || value === undefined) {
+    return currency === 'BRL' ? 'R$ 0,00' : new Intl.NumberFormat('pt-BR', { style: 'currency', currency }).format(0)
+  }
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',
-    currency: 'BRL',
+    currency,
   }).format(Number(value))
 }
 

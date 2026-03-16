@@ -33,7 +33,7 @@ export const useAuthStore = create<AuthStore>()(
       logout: () => set({ user: null, accessToken: null }),
     }),
     {
-      name: 'holosconnect-auth',
+      name: 'ealumini-auth',
       partialize: (state) => ({ user: state.user }),
     }
   )

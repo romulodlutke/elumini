@@ -5,25 +5,26 @@ import { Loader2 } from 'lucide-react'
 import { ButtonHTMLAttributes, forwardRef } from 'react'
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
+  variant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger' | 'sand'
   size?: 'sm' | 'md' | 'lg' | 'xl'
   loading?: boolean
   fullWidth?: boolean
 }
 
 const variantStyles = {
-  primary:   'bg-primary-600 text-white hover:bg-primary-700 shadow-sm hover:shadow-glow-primary active:bg-primary-800',
-  secondary: 'bg-primary-50 text-primary-700 hover:bg-primary-100 border border-primary-200',
-  outline:   'border border-surface-200 bg-white text-slate-700 hover:bg-surface-50 hover:border-surface-300',
-  ghost:     'bg-transparent text-slate-600 hover:bg-surface-100 hover:text-slate-900',
-  danger:    'bg-red-600 text-white hover:bg-red-700 shadow-sm',
+  primary:   'bg-brand-500 text-white hover:bg-brand-600 active:bg-brand-700 shadow-sm hover:shadow-brand-glow',
+  secondary: 'bg-secondary-500 text-white hover:bg-secondary-600 active:bg-secondary-700 shadow-sm',
+  outline:   'border border-sand-300 bg-white text-sand-800 hover:bg-sand-100 hover:border-sand-400 active:bg-sand-200',
+  ghost:     'bg-transparent text-sand-700 hover:bg-sand-200 hover:text-sand-900 active:bg-sand-300',
+  danger:    'bg-red-500 text-white hover:bg-red-600 active:bg-red-700 shadow-sm',
+  sand:      'bg-sand-100 text-sand-800 border border-sand-300 hover:bg-sand-200 active:bg-sand-300',
 }
 
 const sizeStyles = {
-  sm:  'px-3 py-1.5 text-sm rounded-lg gap-1.5',
-  md:  'px-4 py-2.5 text-sm rounded-xl gap-2',
-  lg:  'px-6 py-3 text-base rounded-xl gap-2',
-  xl:  'px-8 py-4 text-lg rounded-2xl gap-3',
+  sm:  'px-4 py-2 text-xs font-semibold rounded-pill gap-1.5 tracking-wide',
+  md:  'px-5 py-2.5 text-sm font-semibold rounded-pill gap-2',
+  lg:  'px-7 py-3 text-sm font-semibold rounded-pill gap-2',
+  xl:  'px-8 py-4 text-base font-semibold rounded-pill gap-2.5',
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
@@ -33,8 +34,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         ref={ref}
         disabled={disabled || loading}
         className={cn(
-          'inline-flex items-center justify-center font-medium transition-all duration-200',
-          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-offset-2',
+          'inline-flex items-center justify-center transition-all duration-200',
+          'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-2',
           'disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none',
           variantStyles[variant],
           sizeStyles[size],
@@ -43,7 +44,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         )}
         {...props}
       >
-        {loading && <Loader2 className="animate-spin" size={size === 'sm' ? 14 : size === 'xl' ? 20 : 16} />}
+        {loading && <Loader2 className="animate-spin flex-shrink-0" size={size === 'sm' ? 13 : size === 'xl' ? 18 : 15} />}
         {children}
       </button>
     )

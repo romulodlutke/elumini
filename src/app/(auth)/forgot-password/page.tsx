@@ -37,30 +37,30 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary-50 via-white to-accent-50 flex items-center justify-center px-4">
-      <div className="w-full max-w-md">
+    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: '#F6F3EE' }}>
+      <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6">
-            <div className="w-10 h-10 bg-primary-600 rounded-xl flex items-center justify-center">
-              <Leaf size={20} className="text-white" />
+          <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
+            <div className="w-9 h-9 bg-brand-500 rounded-xl flex items-center justify-center">
+              <Leaf size={16} className="text-white" />
             </div>
-            <span className="font-bold text-2xl text-slate-900">HolosConnect</span>
+            <span className="font-bold text-sand-900 text-xl">EALumini</span>
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl border border-surface-200 shadow-card p-8">
+        <div className="bg-white rounded-2xl border border-sand-200 shadow-card p-7">
           {sent ? (
             <div className="text-center py-4">
-              <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 size={32} className="text-green-600" />
+              <div className="w-14 h-14 bg-brand-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 size={28} className="text-brand-500" />
               </div>
-              <h2 className="text-xl font-bold text-slate-900 mb-2">E-mail enviado!</h2>
-              <p className="text-slate-500 text-sm mb-6">
+              <h2 className="text-xl font-bold text-sand-900 mb-2">E-mail enviado!</h2>
+              <p className="text-sand-500 text-sm mb-6 leading-relaxed">
                 Se este e-mail estiver cadastrado, você receberá as instruções para redefinir sua senha em breve.
               </p>
               <Link href="/login">
                 <Button fullWidth variant="outline">
-                  <ArrowLeft size={16} />
+                  <ArrowLeft size={15} />
                   Voltar ao login
                 </Button>
               </Link>
@@ -68,15 +68,15 @@ export default function ForgotPasswordPage() {
           ) : (
             <>
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-slate-900 mb-1">Esqueceu a senha?</h2>
-                <p className="text-slate-500 text-sm">Digite seu e-mail para receber as instruções.</p>
+                <h2 className="text-xl font-bold text-sand-900 mb-1">Esqueceu a senha?</h2>
+                <p className="text-sand-500 text-sm">Digite seu e-mail para receber as instruções.</p>
               </div>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <Input
                   label="E-mail cadastrado"
                   type="email"
                   placeholder="seu@email.com"
-                  leftIcon={<Mail size={16} />}
+                  leftIcon={<Mail size={15} />}
                   error={errors.email?.message as string}
                   {...register('email')}
                 />
@@ -84,9 +84,9 @@ export default function ForgotPasswordPage() {
                   Enviar instruções
                 </Button>
               </form>
-              <div className="mt-4 text-center">
-                <Link href="/login" className="text-sm text-slate-500 hover:text-slate-700 flex items-center justify-center gap-1">
-                  <ArrowLeft size={14} />
+              <div className="mt-5 text-center">
+                <Link href="/login" className="text-sm text-sand-400 hover:text-sand-700 flex items-center justify-center gap-1.5 transition-colors">
+                  <ArrowLeft size={13} />
                   Voltar ao login
                 </Link>
               </div>

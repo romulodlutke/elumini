@@ -1,11 +1,12 @@
 {
-  "name": "holosconnect",
+  "name": "ealumini",
   "version": "1.0.0",
   "description": "Marketplace de terapias holísticas - conectando terapeutas e pacientes",
   "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "postinstall": "prisma generate",
     "start": "next start",
     "lint": "next lint",
     "db:generate": "prisma generate",
@@ -34,6 +35,9 @@
     "zod": "^3.22.4",
     "zustand": "^4.5.2"
   },
+  "prisma": {
+    "seed": "ts-node prisma/seed.ts"
+  },
   "devDependencies": {
     "@types/node": "^20.11.25",
     "@types/react": "^18.2.64",
@@ -45,6 +49,7 @@
     "prisma": "^5.10.2",
     "tailwindcss": "^3.4.1",
     "ts-node": "^10.9.2",
-    "typescript": "^5.4.2"
+    "typescript": "^5.4.2",
+    "vercel": "^50.25.0"
   }
 }

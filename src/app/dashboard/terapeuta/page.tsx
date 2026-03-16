@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { Header, StatCard } from '@/components/dashboard/Header'
 import { headers } from 'next/headers'
 import { prisma } from '@/lib/prisma'
@@ -85,7 +87,7 @@ export default async function TerapeutaDashboardPage() {
         )}
 
         {/* KPIs */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
           <StatCard
             title="Agendamentos"
             value={totalAppointments}
@@ -116,35 +118,35 @@ export default async function TerapeutaDashboardPage() {
         </div>
 
         {/* Próximos agendamentos */}
-        <div className="bg-white rounded-2xl border border-surface-200 shadow-card">
-          <div className="flex items-center justify-between p-6 border-b border-surface-100">
-            <h2 className="font-semibold text-slate-900">Últimos agendamentos</h2>
+        <div className="bg-white rounded-2xl border border-sand-200 shadow-card">
+          <div className="flex items-center justify-between p-5 border-b border-sand-100">
+            <h2 className="font-semibold text-sand-900 text-sm">Últimos agendamentos</h2>
             <Link href="/dashboard/terapeuta/agenda">
               <Button variant="outline" size="sm">Ver agenda →</Button>
             </Link>
           </div>
-          <div className="divide-y divide-surface-50">
+          <div className="divide-y divide-sand-50">
             {therapist.appointments.length === 0 ? (
-              <div className="px-6 py-8 text-center text-slate-400 text-sm">
+              <div className="px-6 py-10 text-center text-sand-400 text-sm">
                 Nenhum agendamento ainda. Complete seu perfil para aparecer nas buscas.
               </div>
             ) : (
               therapist.appointments.map((apt) => {
                 const statusConfig = appointmentStatusConfig[apt.status]
                 return (
-                  <div key={apt.id} className="px-6 py-4 flex items-center justify-between gap-4">
+                  <div key={apt.id} className="px-5 py-3.5 flex items-center justify-between gap-4 hover:bg-sand-50/50 transition-colors">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 bg-primary-50 rounded-full flex items-center justify-center text-primary-700 font-semibold text-sm">
+                      <div className="w-9 h-9 bg-brand-500/10 rounded-full flex items-center justify-center text-brand-600 font-semibold text-sm flex-shrink-0">
                         {apt.patient.user.name.charAt(0)}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-slate-900">{apt.patient.user.name}</p>
-                        <p className="text-xs text-slate-500">{formatDateTime(apt.date)}</p>
+                        <p className="text-sm font-medium text-sand-900">{apt.patient.user.name}</p>
+                        <p className="text-xs text-sand-400">{formatDateTime(apt.date)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-3">
-                      <span className="text-sm font-medium text-slate-900">{formatCurrency(Number(apt.price))}</span>
-                      <span className={`text-xs px-2.5 py-1 rounded-full font-medium ${statusConfig.color}`}>
+                      <span className="text-sm font-semibold text-sand-900">{formatCurrency(Number(apt.price))}</span>
+                      <span className={`text-xs px-2.5 py-1 rounded-pill font-semibold ${statusConfig.color}`}>
                         {statusConfig.label}
                       </span>
                     </div>

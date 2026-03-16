@@ -51,3 +51,48 @@ export async function uploadAvatar(
 export async function deleteAvatar(filePath: string): Promise<void> {
   await supabaseAdmin.storage.from(STORAGE_BUCKETS.AVATARS).remove([filePath])
 }
+
+// ==========================================
+// STORAGE - Certificados (PDF/imagem)
+// ==========================================
+
+const ALLOWED_CERT_TYPES = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp']
+
+export async function uploadCertificate(
+  file: File,
+  therapistId: string
+): Promise<{ url: string | null; error: string | null }> {
+  if (!ALLOWED_CERT_TYPES.includes(file.type)) {
+    return { url: null, error: 'Tipo de arquivo não permitido. Use PDF ou imagem (JPEG, PNG, WebP).' }
+  }
+  const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_').slice(0, 80)
+  const fileExt = file.name.split('.').pop() || 'pdf'
+  const fileName = `${Date.now()}-${safeName}`
+  const filePath = `certificates/${therapistId}/${fileName}`
+
+  const { error } = await supabaseAdmin.storage
+    .from(STORAGE_BUCKETS.DOCUMENTS)
+    .upload(filePath, file, { upsert: false })
+
+  if (error) {
+    return { url: null, error: error.message }
+  }
+
+  const { data } = supabaseAdmin.storage
+    .from(STORAGE_BUCKETS.DOCUMENTS)
+    .getPublicUrl(filePath)
+
+  return { url: data.publicUrl, error: null }
+}
+
+export async function deleteCertificateFile(fileUrl: string): Promise<void> {
+  try {
+    const url = new URL(fileUrl)
+    const pathMatch = url.pathname.match(/\/storage\/v1\/object\/public\/documents\/(.+)/)
+    if (pathMatch) {
+      await supabaseAdmin.storage.from(STORAGE_BUCKETS.DOCUMENTS).remove([pathMatch[1]])
+    }
+  } catch {
+    // ignore invalid URL
+  }
+}

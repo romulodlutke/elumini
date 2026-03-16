@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { Header, StatCard } from '@/components/dashboard/Header'
 import { prisma } from '@/lib/prisma'
 import { formatCurrency } from '@/lib/utils'
@@ -61,13 +63,13 @@ export default async function AdminDashboardPage() {
 
   return (
     <div>
-      <Header title="Dashboard Admin" description="Visão geral da plataforma HolosConnect" />
+      <Header title="Dashboard Admin" description="Visão geral da plataforma EALumini" />
 
       <div className="p-6 space-y-6">
         {/* Alerta de aprovações pendentes */}
         {metrics.pendingApprovals > 0 && (
           <Link href="/dashboard/admin/therapists" className="block">
-            <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-xl text-amber-800 hover:bg-amber-100 transition-colors">
+            <div className="flex items-center gap-3 p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 hover:bg-amber-100 transition-colors">
               <AlertCircle size={18} className="text-amber-600 flex-shrink-0" />
               <p className="text-sm font-medium">
                 {metrics.pendingApprovals} terapeuta{metrics.pendingApprovals > 1 ? 's' : ''} aguardando aprovação.
@@ -110,34 +112,34 @@ export default async function AdminDashboardPage() {
         </div>
 
         {/* Últimos agendamentos */}
-        <div className="bg-white rounded-2xl border border-surface-200 shadow-card">
-          <div className="flex items-center justify-between p-6 border-b border-surface-100">
-            <h2 className="text-base font-semibold text-slate-900">Últimos agendamentos</h2>
-            <Link href="/dashboard/admin/reports" className="text-sm text-primary-600 hover:text-primary-700">
+        <div className="bg-white rounded-2xl border border-sand-200 shadow-card">
+          <div className="flex items-center justify-between p-5 border-b border-sand-100">
+            <h2 className="text-sm font-semibold text-sand-900 uppercase tracking-wider">Últimos agendamentos</h2>
+            <Link href="/dashboard/admin/reports" className="text-xs text-brand-500 hover:text-brand-600 font-semibold">
               Ver todos →
             </Link>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-surface-100">
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Terapeuta</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Paciente</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Data</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Valor</th>
-                  <th className="text-left px-6 py-3 text-xs font-medium text-slate-500 uppercase tracking-wider">Status</th>
+                <tr className="border-b border-sand-100 bg-sand-50/50">
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-sand-500 uppercase tracking-wider">Terapeuta</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-sand-500 uppercase tracking-wider">Paciente</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-sand-500 uppercase tracking-wider">Data</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-sand-500 uppercase tracking-wider">Valor</th>
+                  <th className="text-left px-5 py-3 text-[10px] font-semibold text-sand-500 uppercase tracking-wider">Status</th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-surface-50">
+              <tbody className="divide-y divide-sand-50">
                 {metrics.recentAppointments.map((apt) => (
-                  <tr key={apt.id} className="hover:bg-surface-50/50 transition-colors">
-                    <td className="px-6 py-4 font-medium text-slate-900">{apt.therapist.user.name}</td>
-                    <td className="px-6 py-4 text-slate-600">{apt.patient.user.name}</td>
-                    <td className="px-6 py-4 text-slate-600">
+                  <tr key={apt.id} className="hover:bg-sand-50/40 transition-colors">
+                    <td className="px-5 py-3.5 font-semibold text-sand-900 text-xs">{apt.therapist.user.name}</td>
+                    <td className="px-5 py-3.5 text-sand-600 text-xs">{apt.patient.user.name}</td>
+                    <td className="px-5 py-3.5 text-sand-500 text-xs">
                       {new Date(apt.date).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                     </td>
-                    <td className="px-6 py-4 font-medium text-slate-900">{formatCurrency(Number(apt.price))}</td>
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-3.5 font-semibold text-sand-900 text-xs">{formatCurrency(Number(apt.price))}</td>
+                    <td className="px-5 py-3.5">
                       <Badge variant={statusVariant[apt.status] || 'default'} size="sm">
                         {statusLabel[apt.status] || apt.status}
                       </Badge>
@@ -146,7 +148,7 @@ export default async function AdminDashboardPage() {
                 ))}
                 {metrics.recentAppointments.length === 0 && (
                   <tr>
-                    <td colSpan={5} className="px-6 py-8 text-center text-slate-400 text-sm">
+                    <td colSpan={5} className="px-5 py-10 text-center text-sand-400 text-sm">
                       Nenhum agendamento ainda
                     </td>
                   </tr>

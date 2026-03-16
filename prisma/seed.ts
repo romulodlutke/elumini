@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Iniciando seed do banco de dados HolosConnect...')
+  console.log('🌱 Iniciando seed do banco de dados EALumini...')
 
   // Limpar dados existentes (ordem importa por causa das FK)
   await prisma.notification.deleteMany()
@@ -34,8 +34,8 @@ async function main() {
   // ==========================================
   const adminUser = await prisma.user.create({
     data: {
-      name: 'Admin HolosConnect',
-      email: 'admin@holosconnect.com',
+      name: 'Admin EALumini',
+      email: 'admin@ealumini.com',
       password: await bcrypt.hash('Admin@123', 12),
       role: Role.ADMIN,
       active: true,
@@ -49,9 +49,9 @@ async function main() {
   const therapistsData = [
     {
       name: 'Ana Clara Ribeiro',
-      email: 'ana.ribeiro@holosconnect.com',
+      email: 'ana.ribeiro@ealumini.com',
       bio: 'Terapeuta holística com 8 anos de experiência em Reiki e Meditação Guiada. Especializada em tratamento de ansiedade e burnout. Formada pelo Instituto Brasileiro de Terapias Integrativas.',
-      therapies: ['Reiki', 'Meditação Guiada', 'Cristaloterapia'],
+      therapies: ['Reiki', 'Terapias energéticas', 'Registros Akáshicos'],
       price: 180.00,
       modality: Modality.AMBOS,
       location: 'São Paulo, SP',
@@ -64,9 +64,9 @@ async function main() {
     },
     {
       name: 'Carlos Eduardo Silva',
-      email: 'carlos.silva@holosconnect.com',
+      email: 'carlos.silva@ealumini.com',
       bio: 'Acupunturista e Terapeuta Ayurvédico com formação na China e na Índia. Especialista em dores crônicas e equilíbrio energético. Atendimento presencial em São Paulo.',
-      therapies: ['Acupuntura', 'Ayurveda', 'Auriculoterapia'],
+      therapies: ['Terapias energéticas', 'Biomagnetismo', 'Cura quântica'],
       price: 220.00,
       modality: Modality.PRESENCIAL,
       location: 'São Paulo, SP',
@@ -79,9 +79,9 @@ async function main() {
     },
     {
       name: 'Fernanda Costa',
-      email: 'fernanda.costa@holosconnect.com',
+      email: 'fernanda.costa@ealumini.com',
       bio: 'Psicóloga transpessoal e terapeuta holística. Trabalha com integração mente-corpo-espírito para auxiliar em processos de autoconhecimento, cura emocional e expansão de consciência.',
-      therapies: ['Psicologia Transpessoal', 'Constelação Familiar', 'Hipnoterapia'],
+      therapies: ['Constelações familiares', 'Hipnose', 'Terapia emocional'],
       price: 250.00,
       modality: Modality.ONLINE,
       location: 'Online',
@@ -94,9 +94,9 @@ async function main() {
     },
     {
       name: 'Roberto Matos',
-      email: 'roberto.matos@holosconnect.com',
+      email: 'roberto.matos@ealumini.com',
       bio: 'Terapeuta floral e fitoterapeuta com vasta experiência em tratamentos naturais. Utiliza florais de Bach e terapias complementares para equilíbrio emocional e físico.',
-      therapies: ['Florais de Bach', 'Fitoterapia', 'Aromaterapia'],
+      therapies: ['Terapia emocional', 'Terapia espiritual', 'Coaching'],
       price: 150.00,
       modality: Modality.AMBOS,
       location: 'Rio de Janeiro, RJ',
@@ -109,9 +109,9 @@ async function main() {
     },
     {
       name: 'Juliana Alves',
-      email: 'juliana.alves@holosconnect.com',
+      email: 'juliana.alves@ealumini.com',
       bio: 'Yoga terapeuta e instrutora de meditação com formação na Índia (Rishikesh). Especialista em yoga para saúde, meditação vipassana e práticas de bem-estar integrativo.',
-      therapies: ['Yoga Terapêutico', 'Meditação Vipassana', 'Pranayama'],
+      therapies: ['Reiki', 'ThetaHealing', 'Terapia espiritual'],
       price: 130.00,
       modality: Modality.AMBOS,
       location: 'Belo Horizonte, MG',
@@ -142,6 +142,15 @@ async function main() {
             location,
             city,
             state,
+            country: 'Brasil',
+            nationality: 'Brasileira',
+            professionalName: userData.name,
+            documentId: null,
+            whatsapp: null,
+            professionalEmail: null,
+            instagram: null,
+            facebook: null,
+            websiteUrl: null,
             rating,
             reviewCount,
             yearsExp,
@@ -293,7 +302,7 @@ async function main() {
       await prisma.notification.create({
         data: {
           userId: adminUser.id,
-          title: 'Bem-vindo ao HolosConnect Admin',
+          title: 'Bem-vindo ao EALumini Admin',
           message: 'O sistema foi configurado com sucesso. Os dados de seed estão disponíveis para testes.',
           type: 'SUCCESS',
         },
@@ -303,8 +312,8 @@ async function main() {
 
   console.log('\n🎉 Seed concluído com sucesso!')
   console.log('\n📋 Credenciais de acesso:')
-  console.log('   Admin:     admin@holosconnect.com     | Admin@123')
-  console.log('   Terapeuta: ana.ribeiro@holosconnect.com | Terapeuta@123')
+  console.log('   Admin:     admin@ealumini.com     | Admin@123')
+  console.log('   Terapeuta: ana.ribeiro@ealumini.com | Terapeuta@123')
   console.log('   Paciente:  marcos.pereira@email.com   | Paciente@123')
 }
 

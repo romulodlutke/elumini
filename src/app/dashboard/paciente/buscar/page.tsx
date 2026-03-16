@@ -8,12 +8,23 @@ import { Input } from '@/components/ui/Input'
 import { SkeletonCard } from '@/components/ui/LoadingSpinner'
 import { Search, LayoutGrid, List } from 'lucide-react'
 import { useCallback, useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import { cn } from '@/lib/utils'
 
 const DEFAULT_FILTERS: SearchFiltersValues = {
   therapies: [],
   modality: '',
+}
+
+interface TherapistService {
+  id: string
+  name: string
+  description: string | null
+  durationMinutes: number
+  price: number
+  currency: string
+  modality: string
 }
 
 interface Therapist {
@@ -31,6 +42,7 @@ interface Therapist {
   featured: boolean
   approved: boolean
   availability: any[]
+  services?: TherapistService[]
   user: { id: string; name: string; avatarUrl: string | null }
 }
 
@@ -44,6 +56,7 @@ export default function BuscarTerapeutasPage() {
   const [page, setPage] = useState(1)
 
   const [bookingTherapist, setBookingTherapist] = useState<Therapist | null>(null)
+  const router = useRouter()
 
   const fetchTherapists = useCallback(async () => {
     setLoading(true)
@@ -78,6 +91,10 @@ export default function BuscarTerapeutasPage() {
   const handleBook = (therapistId: string) => {
     const t = therapists.find((t) => t.id === therapistId)
     if (t) setBookingTherapist(t)
+  }
+
+  const handleViewProfile = (therapistId: string) => {
+    router.push(`/dashboard/paciente/terapeuta/${therapistId}`)
   }
 
   return (
@@ -163,6 +180,7 @@ export default function BuscarTerapeutasPage() {
                     therapist={therapist}
                     variant={viewMode}
                     onBook={handleBook}
+                    onView={handleViewProfile}
                   />
                 ))}
               </div>

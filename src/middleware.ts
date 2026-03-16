@@ -11,7 +11,7 @@ const PROTECTED_ROUTES: Record<string, string[]> = {
   '/dashboard/terapeuta': ['TERAPEUTA'],
   '/dashboard/paciente':  ['PACIENTE'],
   '/api/admin':           ['ADMIN'],
-  '/api/therapist':       ['TERAPEUTA', 'ADMIN'],
+  '/api/availability':    ['TERAPEUTA', 'ADMIN'],
 }
 
 const AUTH_ROUTES = ['/login', '/register', '/forgot-password']

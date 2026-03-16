@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
@@ -8,6 +10,7 @@ const updateProfileSchema = z.object({
   name: z.string().min(2).max(100).optional(),
   phone: z.string().optional(),
   avatarUrl: z.string().url().optional().nullable(),
+  birthDate: z.string().optional().nullable(),
   currentPassword: z.string().optional(),
   newPassword: z
     .string()
@@ -31,7 +34,7 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
     const user = await prisma.user.findUnique({
       where: { id: params.id },
       include: {
-        therapistProfile: { include: { availability: true } },
+        therapistProfile: { include: { availability: true, targetAudience: true } },
         patientProfile: true,
       },
       omit: { password: true },
@@ -66,7 +69,7 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
       return NextResponse.json({ success: false, error: validated.error.errors[0].message }, { status: 400 })
     }
 
-    const { name, phone, avatarUrl, currentPassword, newPassword } = validated.data
+    const { name, phone, avatarUrl, birthDate, currentPassword, newPassword } = validated.data
 
     // Trocar senha
     if (currentPassword && newPassword) {
@@ -80,12 +83,13 @@ export async function PATCH(request: NextRequest, { params }: { params: { id: st
     if (name) updateData.name = name
     if (phone !== undefined) updateData.phone = phone
     if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl
+    if (birthDate !== undefined) updateData.birthDate = birthDate === '' || birthDate == null ? null : new Date(birthDate)
     if (newPassword) updateData.password = await bcrypt.hash(newPassword, 12)
 
     const updated = await prisma.user.update({
       where: { id: params.id },
       data: updateData,
-      select: { id: true, name: true, email: true, role: true, phone: true, avatarUrl: true },
+      select: { id: true, name: true, email: true, role: true, phone: true, avatarUrl: true, birthDate: true },
     })
 
     return NextResponse.json({ success: true, data: updated })

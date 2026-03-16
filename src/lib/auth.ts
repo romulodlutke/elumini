@@ -23,7 +23,7 @@ export async function generateAccessToken(payload: Omit<JWTPayload, 'iat' | 'exp
   return new SignJWT(payload)
     .setProtectedHeader({ alg: 'HS256' })
     .setIssuedAt()
-    .setExpirationTime(process.env.JWT_EXPIRES_IN || '15m')
+    .setExpirationTime('8h')
     .sign(JWT_SECRET)
 }
 

@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import { z } from 'zod'
@@ -21,11 +23,22 @@ const registerSchema = z.object({
   location: z.string().optional(),
   city: z.string().optional(),
   state: z.string().optional(),
+  country: z.string().optional(),
+  professionalName: z.string().optional(),
+  nationality: z.string().optional(),
+  documentId: z.string().optional(),
+  languages: z.array(z.string()).optional(),
   bio: z.string().optional(),
+  whatsapp: z.string().optional(),
+  professionalEmail: z.string().email().optional().or(z.literal('')),
+  instagram: z.string().optional(),
+  facebook: z.string().optional(),
+  websiteUrl: z.string().url().optional().or(z.literal('')),
+  // Data de nascimento (terapeuta ou paciente)
+  birthDate: z.string().optional(),
   // Campos opcionais do paciente
   anamnese: z.record(z.unknown()).optional(),
   gender: z.enum(['MASCULINO', 'FEMININO', 'NAO_BINARIO', 'PREFIRO_NAO_INFORMAR']).optional(),
-  birthDate: z.string().optional(),
 })
 
 export async function POST(request: NextRequest) {
@@ -40,7 +53,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { name, email, password, role, therapies, price, modality, location, city, state, bio, anamnese, gender, birthDate } = validated.data
+    const { name, email, password, role, therapies, price, modality, location, city, state, country, professionalName, nationality, documentId, languages, bio, whatsapp, professionalEmail, instagram, facebook, websiteUrl, anamnese, gender, birthDate } = validated.data
 
     // Verificar se email já existe
     const existingUser = await prisma.user.findUnique({ where: { email } })
@@ -60,6 +73,7 @@ export async function POST(request: NextRequest) {
         email,
         password: hashedPassword,
         role: role as Role,
+        ...(birthDate ? { birthDate: new Date(birthDate) } : {}),
         ...(role === 'TERAPEUTA' && {
           therapistProfile: {
             create: {
@@ -70,6 +84,16 @@ export async function POST(request: NextRequest) {
               location: location || '',
               city: city || '',
               state: state || '',
+              country: country || null,
+              professionalName: professionalName || null,
+              nationality: nationality || null,
+              documentId: documentId || null,
+              languages: languages?.length ? languages : ['Português'],
+              whatsapp: whatsapp || null,
+              professionalEmail: professionalEmail || null,
+              instagram: instagram || null,
+              facebook: facebook || null,
+              websiteUrl: websiteUrl || null,
               approved: false,
             },
           },
@@ -97,9 +121,9 @@ export async function POST(request: NextRequest) {
     await prisma.notification.create({
       data: {
         userId: user.id,
-        title: 'Bem-vindo ao HolosConnect!',
+        title: 'Bem-vindo ao EALumini!',
         message: role === 'TERAPEUTA'
-          ? 'Seu cadastro foi recebido. Aguarde a aprovação da equipe HolosConnect para começar a atender.'
+          ? 'Seu cadastro foi recebido. Aguarde a aprovação da equipe EALumini para começar a atender.'
           : 'Sua conta foi criada com sucesso. Explore os terapeutas disponíveis e agende sua primeira sessão!',
         type: 'SUCCESS',
       },

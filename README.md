@@ -1,4 +1,4 @@
-# HolosConnect 🌿
+# EALumini 🌿
 
 Marketplace SaaS de terapias holísticas — conectando pacientes a terapeutas certificados.
 
@@ -34,7 +34,7 @@ Marketplace SaaS de terapias holísticas — conectando pacientes a terapeutas c
 ### 1. Instalar dependências
 
 ```bash
-cd holosconnect
+cd ealumini
 npm install
 ```
 
@@ -94,8 +94,8 @@ Acesse: **http://localhost:3000**
 
 | Role | Email | Senha |
 |------|-------|-------|
-| Admin | admin@holosconnect.com | Admin@123 |
-| Terapeuta | ana.ribeiro@holosconnect.com | Terapeuta@123 |
+| Admin | admin@ealumini.com | Admin@123 |
+| Terapeuta | ana.ribeiro@ealumini.com | Terapeuta@123 |
 | Paciente | marcos.pereira@email.com | Paciente@123 |
 
 ---
@@ -129,7 +129,7 @@ FOR INSERT WITH CHECK (bucket_id = 'avatars' AND auth.role() = 'authenticated');
 ## Estrutura de Pastas
 
 ```
-holosconnect/
+ealumini/
 ├── prisma/
 │   ├── schema.prisma       # Schema completo com todos os modelos
 │   └── seed.ts             # Dados iniciais para desenvolvimento

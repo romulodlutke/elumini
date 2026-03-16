@@ -17,6 +17,11 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: ['@prisma/client', 'bcryptjs'],
   },
+  // Necessário para o Vercel reconhecer as variáveis de ambiente do Prisma
+  env: {
+    DATABASE_URL: process.env.DATABASE_URL,
+    DIRECT_URL: process.env.DIRECT_URL,
+  },
 }
 
 module.exports = nextConfig

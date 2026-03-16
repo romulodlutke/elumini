@@ -1,64 +1,86 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/Button'
-import { Leaf, Star, Shield, Zap, ArrowRight, CheckCircle2, Users, Calendar, Heart } from 'lucide-react'
+import {
+  Leaf, Star, ArrowRight, CheckCircle2,
+  Users, Calendar, Heart, Sparkles, Shield, ChevronRight
+} from 'lucide-react'
 
-const THERAPY_HIGHLIGHTS = [
-  'Reiki', 'Acupuntura', 'Meditação', 'Yoga Terapêutico',
-  'Constelação Familiar', 'Florais de Bach', 'Aromaterapia', 'Hipnoterapia',
-]
+import { THERAPY_HIGHLIGHTS } from '@/constants/therapies'
 
 const STATS = [
   { value: '500+', label: 'Terapeutas certificados' },
   { value: '12k+', label: 'Sessões realizadas' },
   { value: '4.9', label: 'Avaliação média' },
-  { value: '98%', label: 'Satisfação dos pacientes' },
+  { value: '98%', label: 'Satisfação' },
 ]
 
 const HOW_IT_WORKS = [
   {
     step: '01',
-    icon: <Users size={24} className="text-primary-600" />,
+    icon: <Users size={22} className="text-brand-500" />,
     title: 'Crie sua conta',
-    description: 'Cadastro gratuito em menos de 2 minutos. Sem burocracia.',
+    description: 'Cadastro gratuito em menos de 2 minutos.',
   },
   {
     step: '02',
-    icon: <Star size={24} className="text-primary-600" />,
+    icon: <Star size={22} className="text-brand-500" />,
     title: 'Encontre seu terapeuta',
-    description: 'Filtre por tipo de terapia, modalidade, preço e avaliações.',
+    description: 'Filtre por terapia, modalidade e preço.',
   },
   {
     step: '03',
-    icon: <Calendar size={24} className="text-primary-600" />,
+    icon: <Calendar size={22} className="text-brand-500" />,
     title: 'Agende sua sessão',
-    description: 'Escolha data e horário diretamente na agenda do terapeuta.',
+    description: 'Escolha data e horário na agenda do profissional.',
   },
   {
     step: '04',
-    icon: <Heart size={24} className="text-primary-600" />,
+    icon: <Heart size={22} className="text-brand-500" />,
     title: 'Comece sua jornada',
-    description: 'Inicie seu processo de cura e bem-estar com suporte holístico.',
+    description: 'Inicie seu processo de cura com suporte holístico.',
+  },
+]
+
+const TESTIMONIALS = [
+  {
+    name: 'Isabela Fonseca',
+    role: 'Paciente',
+    text: 'Encontrei minha terapeuta de Constelação Familiar em menos de 10 minutos. A plataforma é incrível.',
+    stars: 5,
+  },
+  {
+    name: 'Rafael Nunes',
+    role: 'Paciente',
+    text: 'Já são 6 meses de sessões de Reiki. Mudou completamente minha qualidade de vida.',
+    stars: 5,
+  },
+  {
+    name: 'Carla Menezes',
+    role: 'Terapeuta',
+    text: 'Como terapeuta, o EALumini me trouxe pacientes que realmente buscam crescimento.',
+    stars: 5,
   },
 ]
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white">
-      {/* Navbar */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-surface-200">
+    <div className="min-h-screen" style={{ backgroundColor: '#F6F3EE' }}>
+
+      {/* ── Navbar ─────────────────────────────────────────── */}
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-sand-200">
         <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
-              <Leaf size={16} className="text-white" />
+          <Link href="/" className="flex items-center gap-2.5">
+            <div className="w-8 h-8 bg-brand-500 rounded-xl flex items-center justify-center">
+              <Leaf size={15} className="text-white" />
             </div>
-            <span className="font-bold text-slate-900 text-xl tracking-tight">HolosConnect</span>
+            <span className="font-bold text-sand-900 text-lg tracking-tight">EALumini</span>
           </Link>
-          <div className="hidden md:flex items-center gap-8 text-sm text-slate-600">
-            <Link href="#como-funciona" className="hover:text-slate-900 transition-colors">Como funciona</Link>
-            <Link href="#terapias" className="hover:text-slate-900 transition-colors">Terapias</Link>
-            <Link href="/register?role=TERAPEUTA" className="hover:text-slate-900 transition-colors">Seja terapeuta</Link>
+          <div className="hidden md:flex items-center gap-8 text-sm text-sand-600 font-medium">
+            <Link href="#como-funciona" className="hover:text-sand-900 transition-colors">Como funciona</Link>
+            <Link href="#terapias" className="hover:text-sand-900 transition-colors">Terapias</Link>
+            <Link href="/register?role=TERAPEUTA" className="hover:text-sand-900 transition-colors">Seja terapeuta</Link>
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2.5">
             <Link href="/login">
               <Button variant="ghost" size="sm">Entrar</Button>
             </Link>
@@ -69,30 +91,43 @@ export default function HomePage() {
         </div>
       </nav>
 
-      {/* Hero */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-primary-50 via-white to-accent-50 py-24 px-6">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(20,184,166,0.08),transparent_60%)]" />
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_70%_30%,rgba(217,70,239,0.06),transparent_60%)]" />
-        <div className="max-w-4xl mx-auto text-center relative">
-          <div className="inline-flex items-center gap-2 bg-primary-50 border border-primary-200 text-primary-700 text-sm font-medium px-4 py-2 rounded-full mb-8">
-            <Zap size={14} className="fill-primary-500" />
-            Plataforma #1 em terapias holísticas no Brasil
+      {/* ── Hero ──────────────────────────────────────────── */}
+      <section className="relative overflow-hidden pt-20 pb-24 px-6">
+        {/* Mesh gradient sutil */}
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[900px] h-[500px] rounded-full opacity-30"
+            style={{ background: 'radial-gradient(ellipse, rgba(58,141,123,0.18) 0%, transparent 70%)' }} />
+        </div>
+
+        <div className="max-w-5xl mx-auto text-center relative">
+          {/* Tag */}
+          <div className="inline-flex items-center gap-2 bg-brand-500/10 text-brand-600 text-xs font-semibold px-4 py-2 rounded-pill mb-8 border border-brand-500/20 uppercase tracking-widest">
+            <Sparkles size={12} className="fill-brand-500" />
+            Plataforma líder em terapias holísticas
           </div>
-          <h1 className="text-5xl md:text-6xl font-bold text-slate-900 leading-tight mb-6">
-            Conecte-se com seu{' '}
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary-600 to-accent-500">
-              terapeuta ideal
-            </span>
+
+          {/* Headline com Bebas Neue */}
+          <h1
+            className="display-heading text-sand-900 mb-6"
+            style={{ fontSize: 'clamp(56px, 10vw, 110px)' }}
+          >
+            Cuide da sua{' '}
+            <span className="text-brand-500">mente</span>
+            {' '}e da sua{' '}
+            <span className="text-secondary-500">alma</span>
           </h1>
-          <p className="text-lg text-slate-600 max-w-2xl mx-auto mb-10 leading-relaxed">
-            Mais de 500 terapeutas holísticos certificados. Reiki, Acupuntura, Meditação, Constelação Familiar e muito mais.
-            Atendimento online ou presencial, do jeito que você prefere.
+
+          <p className="text-base md:text-lg text-sand-600 max-w-xl mx-auto mb-10 leading-relaxed font-light">
+            Mais de <strong className="text-sand-800 font-semibold">500 terapeutas certificados</strong>. Reiki,
+            Acupuntura, Meditação e muito mais. Atendimento online ou presencial.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-12">
+
+          {/* CTAs */}
+          <div className="flex flex-col sm:flex-row gap-3 justify-center mb-10">
             <Link href="/register">
               <Button size="xl">
                 Encontrar terapeuta
-                <ArrowRight size={18} />
+                <ArrowRight size={17} />
               </Button>
             </Link>
             <Link href="/register?role=TERAPEUTA">
@@ -101,14 +136,16 @@ export default function HomePage() {
               </Button>
             </Link>
           </div>
-          <div className="flex flex-wrap items-center justify-center gap-4">
+
+          {/* Trust badges */}
+          <div className="flex flex-wrap items-center justify-center gap-5">
             {[
               'Cadastro 100% gratuito',
               'Sem mensalidade',
               'Pagamento por sessão',
             ].map((item) => (
-              <span key={item} className="flex items-center gap-2 text-sm text-slate-600">
-                <CheckCircle2 size={16} className="text-primary-500 fill-primary-100" />
+              <span key={item} className="flex items-center gap-1.5 text-sm text-sand-500">
+                <CheckCircle2 size={15} className="text-brand-500" />
                 {item}
               </span>
             ))}
@@ -116,42 +153,51 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Stats */}
-      <section className="py-16 px-6 border-y border-surface-100 bg-white">
-        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8">
+      {/* ── Stats bar ─────────────────────────────────────── */}
+      <section className="bg-white border-y border-sand-200 py-10">
+        <div className="max-w-5xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8">
           {STATS.map((stat) => (
             <div key={stat.label} className="text-center">
-              <p className="text-3xl font-bold text-primary-600 mb-1">{stat.value}</p>
-              <p className="text-sm text-slate-500">{stat.label}</p>
+              <p
+                className="display-heading text-brand-500 mb-1"
+                style={{ fontSize: '2.8rem' }}
+              >
+                {stat.value}
+              </p>
+              <p className="text-xs text-sand-500 font-medium uppercase tracking-wider">{stat.label}</p>
             </div>
           ))}
         </div>
       </section>
 
-      {/* Como funciona */}
-      <section id="como-funciona" className="py-24 px-6 bg-surface-50">
+      {/* ── Como funciona ─────────────────────────────────── */}
+      <section id="como-funciona" className="py-24 px-6">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Como funciona</h2>
-            <p className="text-slate-600 max-w-xl mx-auto">
-              Em 4 passos simples você está conectado com o terapeuta certo para a sua jornada.
-            </p>
+            <p className="label-caps mb-3">Como funciona</p>
+            <h2
+              className="display-heading text-sand-900"
+              style={{ fontSize: 'clamp(36px, 5vw, 64px)' }}
+            >
+              Em 4 passos simples
+            </h2>
           </div>
-          <div className="grid md:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-4 gap-5">
             {HOW_IT_WORKS.map((item, index) => (
-              <div key={index} className="relative">
+              <div key={index} className="relative flex gap-4 md:flex-col md:gap-0">
+                {/* Connector */}
                 {index < 3 && (
-                  <div className="hidden md:block absolute top-10 left-[calc(100%_-_12px)] w-full h-px bg-gradient-to-r from-surface-300 to-transparent z-10" />
+                  <div className="hidden md:block absolute top-7 left-[calc(50%+28px)] w-[calc(100%-40px)] h-px bg-sand-200 z-10" />
                 )}
-                <div className="bg-white rounded-2xl p-6 border border-surface-200 shadow-card text-center relative">
-                  <div className="absolute -top-3 left-4 bg-primary-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                <div className="bg-white rounded-2xl p-6 border border-sand-200 shadow-card text-center relative flex-1">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 bg-brand-500 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-pill tracking-widest">
                     {item.step}
                   </div>
-                  <div className="w-12 h-12 bg-primary-50 rounded-xl flex items-center justify-center mx-auto mb-4 mt-2">
+                  <div className="w-12 h-12 bg-brand-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4 mt-2">
                     {item.icon}
                   </div>
-                  <h3 className="font-semibold text-slate-900 mb-2">{item.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{item.description}</p>
+                  <h3 className="font-semibold text-sand-900 mb-2 text-sm">{item.title}</h3>
+                  <p className="text-sm text-sand-500 leading-relaxed">{item.description}</p>
                 </div>
               </div>
             ))}
@@ -159,59 +205,109 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Terapias */}
-      <section id="terapias" className="py-24 px-6 bg-white">
+      {/* ── Terapias ──────────────────────────────────────── */}
+      <section id="terapias" className="py-24 px-6 bg-white border-y border-sand-200">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">Explore as terapias</h2>
-            <p className="text-slate-600">Mais de 30 modalidades de terapias holísticas disponíveis.</p>
+            <p className="label-caps mb-3">Especialidades</p>
+            <h2
+              className="display-heading text-sand-900 mb-4"
+              style={{ fontSize: 'clamp(36px, 5vw, 64px)' }}
+            >
+              Explore as terapias
+            </h2>
+            <p className="text-sand-500 text-sm">Mais de 30 modalidades disponíveis na plataforma.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
             {THERAPY_HIGHLIGHTS.map((therapy) => (
               <Link
-                key={therapy}
-                href={`/register?therapy=${encodeURIComponent(therapy)}`}
-                className="px-5 py-2.5 bg-surface-50 hover:bg-primary-50 border border-surface-200 hover:border-primary-200 text-slate-700 hover:text-primary-700 rounded-full text-sm font-medium transition-all duration-200"
+                key={therapy.name}
+                href={`/register?therapy=${encodeURIComponent(therapy.name)}`}
+                className="group flex items-center gap-2 px-5 py-2.5 bg-sand-100 hover:bg-brand-500 border border-sand-200 hover:border-brand-500 text-sand-700 hover:text-white rounded-pill text-sm font-medium transition-all duration-200"
               >
-                {therapy}
+                <span className="text-base">{therapy.emoji}</span>
+                {therapy.name}
               </Link>
             ))}
           </div>
         </div>
       </section>
 
-      {/* CTA Final */}
-      <section className="py-24 px-6 bg-gradient-to-br from-primary-600 to-primary-800 text-white">
+      {/* ── Depoimentos ───────────────────────────────────── */}
+      <section className="py-24 px-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <p className="label-caps mb-3">Depoimentos</p>
+            <h2
+              className="display-heading text-sand-900"
+              style={{ fontSize: 'clamp(36px, 5vw, 64px)' }}
+            >
+              Histórias reais
+            </h2>
+          </div>
+          <div className="grid md:grid-cols-3 gap-5">
+            {TESTIMONIALS.map((t, i) => (
+              <div key={i} className="bg-white rounded-2xl p-6 border border-sand-200 shadow-card">
+                <div className="flex gap-0.5 mb-4">
+                  {Array.from({ length: t.stars }).map((_, s) => (
+                    <Star key={s} size={14} className="fill-amber-400 text-amber-400" />
+                  ))}
+                </div>
+                <p className="text-sand-700 text-sm leading-relaxed mb-5">"{t.text}"</p>
+                <div className="flex items-center gap-3 border-t border-sand-100 pt-4">
+                  <div className="w-9 h-9 rounded-full bg-brand-500/15 flex items-center justify-center text-brand-600 font-semibold text-sm">
+                    {t.name[0]}
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-sand-900">{t.name}</p>
+                    <p className="text-xs text-sand-400">{t.role}</p>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ── CTA Final ─────────────────────────────────────── */}
+      <section className="py-24 px-6 bg-brand-500">
         <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            Pronto para começar sua jornada?
+          <p className="text-brand-100/70 text-xs font-semibold uppercase tracking-widest mb-4">Comece hoje</p>
+          <h2
+            className="display-heading text-white mb-5"
+            style={{ fontSize: 'clamp(36px, 6vw, 72px)' }}
+          >
+            Pronto para sua jornada?
           </h2>
-          <p className="text-primary-100 mb-8 text-lg">
-            Junte-se a milhares de pessoas que já transformaram suas vidas com terapias holísticas.
+          <p className="text-brand-100/80 mb-9 text-base max-w-md mx-auto leading-relaxed">
+            Junte-se a milhares de pessoas que transformaram suas vidas com terapias holísticas.
           </p>
           <Link href="/register">
-            <Button variant="secondary" size="xl">
+            <Button
+              size="xl"
+              className="bg-white text-brand-600 hover:bg-sand-100 shadow-lg"
+            >
               Criar conta gratuita
-              <ArrowRight size={18} />
+              <ArrowRight size={17} />
             </Button>
           </Link>
         </div>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-900 text-slate-400 py-12 px-6">
-        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-primary-600 rounded-lg flex items-center justify-center">
-              <Leaf size={14} className="text-white" />
+      {/* ── Footer ────────────────────────────────────────── */}
+      <footer className="bg-sand-900 text-sand-500 py-12 px-6">
+        <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex items-center gap-2.5">
+            <div className="w-7 h-7 bg-brand-500 rounded-xl flex items-center justify-center">
+              <Leaf size={13} className="text-white" />
             </div>
-            <span className="font-semibold text-white">HolosConnect</span>
+            <span className="font-bold text-white text-sm">EALumini</span>
           </div>
-          <p className="text-sm">© 2025 HolosConnect. Todos os direitos reservados.</p>
-          <div className="flex gap-6 text-sm">
-            <Link href="/privacidade" className="hover:text-white transition-colors">Privacidade</Link>
-            <Link href="/termos" className="hover:text-white transition-colors">Termos</Link>
-            <Link href="/suporte" className="hover:text-white transition-colors">Suporte</Link>
+          <p className="text-xs text-sand-600">© 2025 EALumini. Todos os direitos reservados.</p>
+          <div className="flex gap-6 text-xs font-medium">
+            <Link href="/privacidade" className="hover:text-sand-300 transition-colors">Privacidade</Link>
+            <Link href="/termos"      className="hover:text-sand-300 transition-colors">Termos</Link>
+            <Link href="/suporte"     className="hover:text-sand-300 transition-colors">Suporte</Link>
           </div>
         </div>
       </footer>

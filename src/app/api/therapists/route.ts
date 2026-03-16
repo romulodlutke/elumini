@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Modality } from '@prisma/client'
@@ -51,6 +53,14 @@ export async function GET(request: NextRequest) {
         include: {
           user: {
             select: { id: true, name: true, email: true, avatarUrl: true },
+          },
+          availability: {
+            where: { active: true },
+            select: { dayOfWeek: true, startTime: true, endTime: true, slotDuration: true },
+          },
+          services: {
+            where: { active: true },
+            select: { id: true, name: true, description: true, durationMinutes: true, price: true, currency: true, modality: true },
           },
         },
         orderBy: [{ featured: 'desc' }, { rating: 'desc' }, { reviewCount: 'desc' }],

@@ -1,10 +1,9 @@
 'use client'
 
-import { cn, formatCurrency, getAvatarUrl, modalityLabels } from '@/lib/utils'
+import { cn, formatCurrency, getAvatarUrl } from '@/lib/utils'
 import { MapPin, Star, Clock, Video, Users } from 'lucide-react'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
-import { StarRating } from '@/components/ui/StarRating'
 import Image from 'next/image'
 
 interface TherapistCardProps {
@@ -20,6 +19,7 @@ interface TherapistCardProps {
     bio: string | null
     yearsExp: number | null
     featured?: boolean
+    professionalName?: string | null
     user: {
       id: string
       name: string
@@ -32,69 +32,55 @@ interface TherapistCardProps {
 }
 
 export function TherapistCard({ therapist, onBook, onView, variant = 'grid' }: TherapistCardProps) {
-  const avatarUrl = getAvatarUrl(therapist.user.name, therapist.user.avatarUrl)
+  const displayName = therapist.professionalName || therapist.user.name
+  const avatarUrl = getAvatarUrl(displayName, therapist.user.avatarUrl)
   const isOnline = therapist.modality === 'ONLINE' || therapist.modality === 'AMBOS'
   const isPresencial = therapist.modality === 'PRESENCIAL' || therapist.modality === 'AMBOS'
 
   if (variant === 'list') {
     return (
-      <div className="bg-white rounded-2xl border border-surface-200 shadow-card hover:shadow-card-hover transition-all duration-300 p-5">
-        <div className="flex gap-4">
+      <div className="group bg-white rounded-2xl border border-sand-200 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 p-5">
+        <div className="flex gap-4 items-center">
           <div className="relative flex-shrink-0">
             <Image
               src={avatarUrl}
-              alt={therapist.user.name}
-              width={72}
-              height={72}
-              className="rounded-xl object-cover w-[72px] h-[72px]"
+              alt={displayName}
+              width={64}
+              height={64}
+              className="rounded-full object-cover w-16 h-16 border-2 border-sand-200"
             />
             {therapist.featured && (
               <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center">
-                <Star size={10} className="fill-white text-white" />
+                <Star size={9} className="fill-white text-white" />
               </span>
             )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-semibold text-slate-900 truncate">{therapist.user.name}</h3>
-                <p className="text-sm text-slate-500 truncate">{therapist.therapies[0]}</p>
+                <h3 className="font-semibold text-sand-900 truncate text-sm">{displayName}</h3>
+                <p className="text-xs text-brand-500 font-medium mt-0.5">{therapist.therapies[0]}</p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="font-bold text-slate-900 text-sm">{formatCurrency(Number(therapist.price))}</p>
-                <p className="text-xs text-slate-400">por sessão</p>
+                <p className="font-bold text-sand-900 text-sm">{formatCurrency(Number(therapist.price))}</p>
+                <p className="text-xs text-sand-400">por sessão</p>
               </div>
             </div>
-            <div className="flex items-center gap-3 mt-2">
-              <StarRating value={therapist.rating} size="sm" showValue />
-              <span className="text-xs text-slate-400">({therapist.reviewCount})</span>
+            <div className="flex items-center gap-3 mt-2 flex-wrap">
+              <div className="flex items-center gap-1">
+                <Star size={12} className="fill-amber-400 text-amber-400" />
+                <span className="text-xs font-semibold text-sand-800">{Number(therapist.rating).toFixed(1)}</span>
+                <span className="text-xs text-sand-400">({therapist.reviewCount})</span>
+              </div>
               {therapist.city && (
-                <span className="flex items-center gap-1 text-xs text-slate-500">
+                <span className="flex items-center gap-1 text-xs text-sand-400">
                   <MapPin size={10} />
                   {therapist.city}
                 </span>
               )}
-            </div>
-            <div className="flex items-center gap-2 mt-3">
-              <div className="flex gap-1.5 flex-wrap">
-                {therapist.therapies.slice(0, 2).map((t) => (
-                  <Badge key={t} variant="default" size="sm">{t}</Badge>
-                ))}
-                {therapist.therapies.length > 2 && (
-                  <Badge variant="default" size="sm">+{therapist.therapies.length - 2}</Badge>
-                )}
-              </div>
-              <div className="ml-auto flex gap-2">
-                {onView && (
-                  <Button variant="outline" size="sm" onClick={() => onView(therapist.id)}>
-                    Ver perfil
-                  </Button>
-                )}
-                {onBook && (
-                  <Button size="sm" onClick={() => onBook(therapist.id)}>
-                    Agendar
-                  </Button>
-                )}
+              <div className="flex gap-1.5 ml-auto">
+                {onView && <Button variant="outline" size="sm" onClick={() => onView(therapist.id)}>Ver perfil</Button>}
+                {onBook && <Button size="sm" onClick={() => onBook(therapist.id)}>Agendar</Button>}
               </div>
             </div>
           </div>
@@ -103,59 +89,71 @@ export function TherapistCard({ therapist, onBook, onView, variant = 'grid' }: T
     )
   }
 
+  // Grid card
   return (
-    <div className="group bg-white rounded-2xl border border-surface-200 shadow-card hover:shadow-card-hover transition-all duration-300 overflow-hidden flex flex-col">
-      {/* Imagem + featured badge */}
-      <div className="relative bg-gradient-to-br from-primary-50 to-accent-50 p-6 flex flex-col items-center">
+    <div className="group bg-white rounded-2xl border border-sand-200 shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer">
+
+      {/* Topo com gradiente areia */}
+      <div className="relative bg-gradient-to-b from-sand-100 to-sand-50 pt-6 pb-4 px-6 flex flex-col items-center text-center border-b border-sand-100">
         {therapist.featured && (
-          <div className="absolute top-3 right-3 bg-amber-400 text-white text-xs font-semibold px-2 py-0.5 rounded-full flex items-center gap-1">
-            <Star size={10} className="fill-white" />
+          <div className="absolute top-3 right-3 bg-amber-400 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-pill flex items-center gap-1 tracking-wide">
+            <Star size={9} className="fill-white" />
             Destaque
           </div>
         )}
-        <Image
-          src={avatarUrl}
-          alt={therapist.user.name}
-          width={88}
-          height={88}
-          className="rounded-full object-cover w-[88px] h-[88px] border-4 border-white shadow-md"
-        />
-        <div className="mt-3 text-center">
-          <h3 className="font-semibold text-slate-900">{therapist.user.name}</h3>
-          <p className="text-sm text-primary-600 font-medium mt-0.5">{therapist.therapies[0]}</p>
+        <div className="relative">
+          <Image
+            src={avatarUrl}
+            alt={displayName}
+            width={80}
+            height={80}
+            className="rounded-full object-cover w-20 h-20 border-4 border-white shadow-card"
+          />
         </div>
+        <h3 className="font-semibold text-sand-900 mt-3 text-sm leading-snug">{displayName}</h3>
+        <p className="text-xs text-brand-500 font-semibold mt-0.5 uppercase tracking-wider">{therapist.therapies[0]}</p>
+        {/* Estrelas */}
         <div className="flex items-center gap-1.5 mt-2">
-          <StarRating value={therapist.rating} size="sm" showValue />
-          <span className="text-xs text-slate-400">({therapist.reviewCount} avaliações)</span>
+          <div className="flex gap-0.5">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <Star
+                key={i}
+                size={11}
+                className={i < Math.round(therapist.rating) ? 'fill-amber-400 text-amber-400' : 'text-sand-300'}
+              />
+            ))}
+          </div>
+          <span className="text-xs font-semibold text-sand-700">{Number(therapist.rating).toFixed(1)}</span>
+          <span className="text-[11px] text-sand-400">({therapist.reviewCount})</span>
         </div>
       </div>
 
-      {/* Infos */}
-      <div className="p-4 flex-1 flex flex-col">
-        {/* Modalidade */}
-        <div className="flex items-center gap-3 text-xs text-slate-500 mb-3">
+      {/* Corpo */}
+      <div className="p-4 flex-1 flex flex-col gap-3">
+        {/* Modalidade + local */}
+        <div className="flex items-center gap-2.5 text-xs text-sand-500">
           {isOnline && (
             <span className="flex items-center gap-1">
-              <Video size={12} className="text-primary-500" />
+              <Video size={11} className="text-brand-500" />
               Online
             </span>
           )}
           {isPresencial && (
             <span className="flex items-center gap-1">
-              <Users size={12} className="text-primary-500" />
+              <Users size={11} className="text-brand-500" />
               Presencial
             </span>
           )}
           {therapist.city && (
             <span className="flex items-center gap-1 ml-auto">
-              <MapPin size={12} />
+              <MapPin size={10} />
               {therapist.city}
             </span>
           )}
         </div>
 
-        {/* Tags de terapias */}
-        <div className="flex flex-wrap gap-1.5 mb-4 flex-1">
+        {/* Tags */}
+        <div className="flex flex-wrap gap-1.5 flex-1">
           {therapist.therapies.slice(0, 3).map((t) => (
             <Badge key={t} variant="default" size="sm">{t}</Badge>
           ))}
@@ -164,22 +162,22 @@ export function TherapistCard({ therapist, onBook, onView, variant = 'grid' }: T
           )}
         </div>
 
-        {/* Anos de exp */}
+        {/* Exp */}
         {therapist.yearsExp && (
-          <div className="flex items-center gap-1 text-xs text-slate-400 mb-3">
-            <Clock size={11} />
+          <div className="flex items-center gap-1 text-[11px] text-sand-400">
+            <Clock size={10} />
             {therapist.yearsExp} anos de experiência
           </div>
         )}
 
         {/* Preço + CTA */}
-        <div className="border-t border-surface-100 pt-3 mt-auto">
-          <div className="flex items-center justify-between mb-3">
+        <div className="border-t border-sand-100 pt-3 mt-auto">
+          <div className="flex items-end justify-between mb-3">
             <div>
-              <span className="text-xs text-slate-400">A partir de</span>
-              <p className="text-lg font-bold text-slate-900">{formatCurrency(Number(therapist.price))}</p>
+              <p className="text-[10px] text-sand-400 uppercase tracking-wider">A partir de</p>
+              <p className="text-xl font-bold text-sand-900">{formatCurrency(Number(therapist.price))}</p>
             </div>
-            <span className="text-xs text-slate-400">/ sessão</span>
+            <p className="text-[11px] text-sand-400 mb-1">/ sessão</p>
           </div>
           <div className="flex gap-2">
             {onView && (
@@ -189,7 +187,7 @@ export function TherapistCard({ therapist, onBook, onView, variant = 'grid' }: T
             )}
             {onBook && (
               <Button size="sm" fullWidth onClick={() => onBook(therapist.id)}>
-                Agendar
+                Agendar sessão
               </Button>
             )}
           </div>
