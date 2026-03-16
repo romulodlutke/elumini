@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
@@ -12,6 +13,14 @@ const loginSchema = z.object({
 })
 
 export async function POST(request: NextRequest) {
+  if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+    console.error('[LOGIN] Missing JWT_SECRET or JWT_REFRESH_SECRET')
+    return NextResponse.json(
+      { success: false, error: 'Erro de configuração do servidor. Tente novamente mais tarde.' },
+      { status: 503 }
+    )
+  }
+
   try {
     const body = await request.json()
     const validated = loginSchema.safeParse(body)
@@ -61,7 +70,8 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('[LOGIN]', error)
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error('[LOGIN]', err.message, err.stack)
     return NextResponse.json({ success: false, error: 'Erro interno do servidor' }, { status: 500 })
   }
 }

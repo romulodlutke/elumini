@@ -1,4 +1,5 @@
 export const dynamic = 'force-dynamic'
+export const runtime = 'nodejs'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
@@ -13,6 +14,14 @@ import {
 } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
+  if (!process.env.JWT_SECRET || !process.env.JWT_REFRESH_SECRET) {
+    console.error('[REFRESH] Missing JWT_SECRET or JWT_REFRESH_SECRET')
+    return NextResponse.json(
+      { success: false, error: 'Erro de configuração do servidor. Tente novamente mais tarde.' },
+      { status: 503 }
+    )
+  }
+
   try {
     const refreshToken =
       request.cookies.get('refresh_token')?.value ||
@@ -57,7 +66,8 @@ export async function POST(request: NextRequest) {
 
     return response
   } catch (error) {
-    console.error('[REFRESH]', error)
+    const err = error instanceof Error ? error : new Error(String(error))
+    console.error('[REFRESH]', err.message, err.stack)
     return NextResponse.json({ success: false, error: 'Erro ao renovar token' }, { status: 500 })
   }
 }
