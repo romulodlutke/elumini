@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/Input'
 import { Badge } from '@/components/ui/Badge'
 import { useAuthStore } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
+import { withAuth } from '@/lib/auth-fetch'
+import { useTherapistUnifiedUpload } from '@/hooks/useTherapistUnifiedUpload'
 import { X, Plus, Save, Upload, FileText, ExternalLink, Trash2, Briefcase, Pencil, User, Camera, Phone, DollarSign, CreditCard } from 'lucide-react'
 import { THERAPY_OPTIONS } from '@/constants/therapies'
 
@@ -22,16 +24,24 @@ interface TherapistService {
   modality: string
 }
 
+/** Dados mínimos do usuário após GET /api/users/:id (upload só após carregar). */
+interface LoadedTherapistProfile {
+  id: string
+  therapistProfileId: string | null
+}
+
 export default function TerapeutaPerfilPage() {
   const { user } = useAuthStore()
   const [loading, setLoading] = useState(false)
+  const [profile, setProfile] = useState<LoadedTherapistProfile | null>(null)
+  const [loadingProfile, setLoadingProfile] = useState(true)
+  const [profileLoadError, setProfileLoadError] = useState<string | null>(null)
   const [profileId, setProfileId] = useState<string | null>(null)
 
   const [name, setName] = useState('')
   const [phone, setPhone] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
-  const [avatarUploading, setAvatarUploading] = useState(false)
   const [professionalName, setProfessionalName] = useState('')
   const [country, setCountry] = useState('')
   const [nationality, setNationality] = useState('')
@@ -62,7 +72,28 @@ export default function TerapeutaPerfilPage() {
   const [wantCampaigns, setWantCampaigns] = useState(false)
   const [allowAutoScheduling, setAllowAutoScheduling] = useState(false)
   const [certificateFiles, setCertificateFiles] = useState<{ id: string; name: string; fileUrl: string }[]>([])
-  const [certificateUploading, setCertificateUploading] = useState(false)
+  const [documentUploadLabel, setDocumentUploadLabel] = useState<string | null>(null)
+
+  const profileLoaded = !loadingProfile && !!profile
+
+  const { fileInputRef, pickFile, handleFileChange, defaultAccept, isUploading } = useTherapistUnifiedUpload({
+    userId: user?.id,
+    profileId,
+    profileLoaded,
+    onProfileImageSuccess: (url) => {
+      setAvatarUrl(url)
+      toast.success('Foto profissional atualizada!')
+    },
+    onCertificationSuccess: (row) => {
+      setCertificateFiles((prev) => [...prev, row])
+      toast.success('Certificado enviado!')
+    },
+    onDocumentSuccess: (fileName) => {
+      setDocumentUploadLabel(fileName)
+      toast.success('Documento enviado com sucesso!')
+    },
+    onError: (msg) => toast.error(msg),
+  })
 
   // Métodos de pagamento e dados para recebimento
   const [paymentMethods, setPaymentMethods] = useState<string[]>([])
@@ -97,55 +128,161 @@ export default function TerapeutaPerfilPage() {
   const [showServiceForm, setShowServiceForm] = useState(false)
   const [savingService, setSavingService] = useState(false)
 
-  useEffect(() => {
-    if (!user) return
-    fetch(`/api/users/${user.id}`)
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.success) {
-          setName(data.data.name || '')
-          setPhone(data.data.phone || '')
-          setBirthDate(data.data.birthDate ? data.data.birthDate.slice(0, 10) : '')
-          setAvatarUrl(data.data.avatarUrl || null)
-          const tp = data.data.therapistProfile
-          if (tp) {
-            setProfileId(tp.id)
-            setProfessionalName(tp.professionalName || '')
-            setCountry(tp.country || '')
-            setNationality(tp.nationality || '')
-            setDocumentId(tp.documentId || '')
-            setLanguages(tp.languages?.length ? tp.languages.join(', ') : 'Português')
-            setBio(tp.bio || '')
-            setPrice(String(tp.price || ''))
-            setModality(tp.modality || 'AMBOS')
-            setLocation(tp.location || '')
-            setCity(tp.city || '')
-            setState(tp.state || '')
-            setYearsExp(String(tp.yearsExp || ''))
-            setSelectedTherapies(tp.therapies || [])
-            setCertifications(tp.certifications || [])
-            setPublicTargetDescription(tp.targetAudience?.specialNeeds ?? '')
-            setSessionsPerMonthGoal(tp.sessionsPerMonthGoal != null ? String(tp.sessionsPerMonthGoal) : '')
-            setWantCampaigns(tp.wantCampaigns ?? false)
-            setAllowAutoScheduling(tp.allowAutoScheduling ?? false)
-            setWhatsapp(tp.whatsapp || '')
-            setProfessionalEmail(tp.professionalEmail || '')
-            setInstagram(tp.instagram || '')
-            setFacebook(tp.facebook || '')
-            setWebsiteUrl(tp.websiteUrl || '')
-            setMinSessionPrice(tp.minSessionPrice != null ? String(tp.minSessionPrice) : '')
-            setMaxSessionPrice(tp.maxSessionPrice != null ? String(tp.maxSessionPrice) : '')
-            setBaseCurrency(tp.baseCurrency || 'BRL')
-            setAllowPromos(tp.allowPromos ?? false)
-            setMinPromoPrice(tp.minPromoPrice != null ? String(tp.minPromoPrice) : '')
-          }
-        }
-      })
+  /** Refetch user + therapist profile from API and sync form state (also used after save). */
+  const loadProfile = useCallback(async (opts?: { silent?: boolean }) => {
+    const silent = opts?.silent ?? false
+    if (!user) {
+      setProfile(null)
+      setProfileId(null)
+      setProfileLoadError(null)
+      setLoadingProfile(false)
+      return
+    }
+    if (!silent) {
+      setLoadingProfile(true)
+      setProfileLoadError(null)
+    }
+    try {
+      const r = await fetch('/api/profile', withAuth({ cache: 'no-store' }))
+      let data: { success?: boolean; error?: string; data?: Record<string, unknown> }
+      try {
+        data = await r.json()
+      } catch {
+        data = { success: false, error: 'Resposta inválida do servidor' }
+      }
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[TerapeutaPerfil] GET /api/profile', { status: r.status, ok: r.ok })
+        console.log('Perfil carregado:', data)
+      }
+
+      if (!r.ok || !data.success || !data.data) {
+        const msg = [data.error, !r.ok && `HTTP ${r.status}`].filter(Boolean).join(' · ') || 'Falha ao carregar perfil'
+        console.error('Erro ao carregar perfil:', { status: r.status, body: data })
+        setProfileLoadError(msg)
+        toast.error(data.error || 'Não foi possível carregar o perfil')
+        setProfile(null)
+        setProfileId(null)
+        return
+      }
+
+      const row = data.data as {
+        id: string
+        role?: string
+        name?: string
+        therapistProfile?: Record<string, unknown> | null
+      }
+
+      if (row.role !== 'TERAPEUTA') {
+        const msg = 'Esta área é exclusiva para terapeutas.'
+        setProfileLoadError(msg)
+        toast.error(msg)
+        setProfile(null)
+        setProfileId(null)
+        return
+      }
+
+      const tp = row.therapistProfile as typeof row.therapistProfile & {
+        id?: string
+        professionalName?: string | null
+        country?: string | null
+        nationality?: string | null
+        documentId?: string | null
+        languages?: string[]
+        bio?: string | null
+        price?: unknown
+        modality?: string
+        location?: string | null
+        city?: string | null
+        state?: string | null
+        yearsExp?: number | null
+        therapies?: string[]
+        certifications?: string[]
+        targetAudience?: { specialNeeds?: string | null } | null
+        sessionsPerMonthGoal?: number | null
+        wantCampaigns?: boolean
+        allowAutoScheduling?: boolean
+        whatsapp?: string | null
+        professionalEmail?: string | null
+        instagram?: string | null
+        facebook?: string | null
+        websiteUrl?: string | null
+        minSessionPrice?: unknown
+        maxSessionPrice?: unknown
+        baseCurrency?: string | null
+        allowPromos?: boolean
+        minPromoPrice?: unknown
+      } | null
+
+      const snapshot: LoadedTherapistProfile = {
+        id: row.id,
+        therapistProfileId: tp?.id ?? null,
+      }
+      setProfile(snapshot)
+      setProfileLoadError(null)
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Profile (snapshot):', snapshot)
+      }
+
+      setName(row.name || '')
+      setPhone((row as { phone?: string | null }).phone || '')
+      setBirthDate(
+        (row as { birthDate?: string | null }).birthDate
+          ? String((row as { birthDate?: string }).birthDate).slice(0, 10)
+          : ''
+      )
+      setAvatarUrl((row as { avatarUrl?: string | null }).avatarUrl || null)
+      if (tp) {
+        setProfileId(tp.id ?? null)
+        setProfessionalName(tp.professionalName || '')
+        setCountry(tp.country || '')
+        setNationality(tp.nationality || '')
+        setDocumentId(tp.documentId || '')
+        setLanguages(tp.languages?.length ? tp.languages.join(', ') : 'Português')
+        setBio(tp.bio || '')
+        setPrice(String(tp.price ?? ''))
+        setModality(tp.modality || 'AMBOS')
+        setLocation(tp.location || '')
+        setCity(tp.city || '')
+        setState(tp.state || '')
+        setYearsExp(tp.yearsExp != null ? String(tp.yearsExp) : '')
+        setSelectedTherapies(tp.therapies || [])
+        setCertifications(tp.certifications || [])
+        setPublicTargetDescription(tp.targetAudience?.specialNeeds ?? '')
+        setSessionsPerMonthGoal(tp.sessionsPerMonthGoal != null ? String(tp.sessionsPerMonthGoal) : '')
+        setWantCampaigns(tp.wantCampaigns ?? false)
+        setAllowAutoScheduling(tp.allowAutoScheduling ?? false)
+        setWhatsapp(tp.whatsapp || '')
+        setProfessionalEmail(tp.professionalEmail || '')
+        setInstagram(tp.instagram || '')
+        setFacebook(tp.facebook || '')
+        setWebsiteUrl(tp.websiteUrl || '')
+        setMinSessionPrice(tp.minSessionPrice != null ? String(tp.minSessionPrice) : '')
+        setMaxSessionPrice(tp.maxSessionPrice != null ? String(tp.maxSessionPrice) : '')
+        setBaseCurrency(tp.baseCurrency || 'BRL')
+        setAllowPromos(tp.allowPromos ?? false)
+        setMinPromoPrice(tp.minPromoPrice != null ? String(tp.minPromoPrice) : '')
+      } else {
+        setProfileId(null)
+      }
+    } catch (e) {
+      console.error('Erro ao carregar perfil:', e)
+      setProfileLoadError('Erro de rede ou servidor. Verifique sua conexão e tente novamente.')
+      toast.error('Erro ao carregar perfil')
+      setProfile(null)
+      setProfileId(null)
+    } finally {
+      if (!silent) setLoadingProfile(false)
+    }
   }, [user])
 
   useEffect(() => {
+    loadProfile()
+  }, [loadProfile])
+
+  useEffect(() => {
     if (!profileId) return
-    fetch(`/api/therapists/${profileId}/certificates`)
+    fetch(`/api/therapists/${profileId}/certificates`, withAuth())
       .then((r) => r.json())
       .then((data) => {
         if (data.success) setCertificateFiles(data.data || [])
@@ -155,7 +292,7 @@ export default function TerapeutaPerfilPage() {
 
   useEffect(() => {
     if (!profileId) return
-    fetch(`/api/therapists/${profileId}/services`)
+    fetch(`/api/therapists/${profileId}/services`, withAuth())
       .then((r) => r.json())
       .then((data) => {
         if (data.success) setServices(data.data || [])
@@ -165,7 +302,7 @@ export default function TerapeutaPerfilPage() {
 
   useEffect(() => {
     if (!profileId) return
-    fetch(`/api/therapists/${profileId}/payment`)
+    fetch(`/api/therapists/${profileId}/payment`, withAuth())
       .then((r) => r.json())
       .then((data) => {
         if (data.success && data.data) {
@@ -180,60 +317,10 @@ export default function TerapeutaPerfilPage() {
       .catch(() => {})
   }, [profileId])
 
-  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !user) return
-    setAvatarUploading(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      const res = await fetch(`/api/users/${user.id}/avatar`, { method: 'POST', body: formData })
-      const data = await res.json()
-      if (data.success && data.data?.avatarUrl) {
-        setAvatarUrl(data.data.avatarUrl)
-        toast.success('Foto profissional atualizada!')
-      } else {
-        toast.error(data.error || 'Falha no envio')
-      }
-    } catch {
-      toast.error('Erro ao enviar foto')
-    } finally {
-      setAvatarUploading(false)
-      e.target.value = ''
-    }
-  }
-
-  const handleCertificateUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file || !profileId) return
-    setCertificateUploading(true)
-    try {
-      const formData = new FormData()
-      formData.append('file', file)
-      formData.append('name', file.name.replace(/\.[^/.]+$/, ''))
-      const res = await fetch(`/api/therapists/${profileId}/certificates`, {
-        method: 'POST',
-        body: formData,
-      })
-      const data = await res.json()
-      if (data.success && data.data) {
-        setCertificateFiles((prev) => [...prev, data.data])
-        toast.success('Certificado enviado!')
-      } else {
-        toast.error(data.error || 'Falha no envio')
-      }
-    } catch {
-      toast.error('Erro ao enviar certificado')
-    } finally {
-      setCertificateUploading(false)
-      e.target.value = ''
-    }
-  }
-
   const handleRemoveCertificate = async (certId: string) => {
     if (!profileId) return
     try {
-      const res = await fetch(`/api/therapists/${profileId}/certificates/${certId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/therapists/${profileId}/certificates/${certId}`, withAuth({ method: 'DELETE' }))
       const data = await res.json()
       if (data.success) {
         setCertificateFiles((prev) => prev.filter((c) => c.id !== certId))
@@ -312,7 +399,10 @@ export default function TerapeutaPerfilPage() {
   }
 
   const handleSaveService = async () => {
-    if (!profileId) return
+    if (!profileId) {
+      toast.error('Perfil ainda não carregado. Aguarde ou recarregue a página.')
+      return
+    }
     if (!serviceForm.name.trim()) {
       toast.error('Nome do serviço é obrigatório')
       return
@@ -339,11 +429,17 @@ export default function TerapeutaPerfilPage() {
         ? { name: serviceForm.name, description: serviceForm.description || null, problemsHelped: serviceForm.problemsHelped || null, durationMinutes: duration, price: priceNum, promoPrice: promoNum != null && !isNaN(promoNum) && promoNum > 0 ? promoNum : null, currency: serviceForm.currency, modality: serviceForm.modality }
         : { name: serviceForm.name, description: serviceForm.description || null, problemsHelped: serviceForm.problemsHelped || null, durationMinutes: duration, price: priceNum, promoPrice: promoNum != null && !isNaN(promoNum) && promoNum > 0 ? promoNum : null, currency: serviceForm.currency, modality: serviceForm.modality }
 
-      const res = await fetch(url, {
-        method,
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body),
-      })
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[TerapeutaPerfil] service save', { method, url })
+      }
+      const res = await fetch(
+        url,
+        withAuth({
+          method,
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        })
+      )
       const data = await res.json()
       if (data.success) {
         toast.success(serviceForm.id ? 'Serviço atualizado!' : 'Serviço adicionado!')
@@ -367,7 +463,7 @@ export default function TerapeutaPerfilPage() {
   const handleDeleteService = async (serviceId: string) => {
     if (!profileId || !confirm('Remover este serviço?')) return
     try {
-      const res = await fetch(`/api/therapists/${profileId}/services/${serviceId}`, { method: 'DELETE' })
+      const res = await fetch(`/api/therapists/${profileId}/services/${serviceId}`, withAuth({ method: 'DELETE' }))
       const data = await res.json()
       if (data.success) {
         setServices((prev) => prev.filter((s) => s.id !== serviceId))
@@ -381,77 +477,191 @@ export default function TerapeutaPerfilPage() {
   }
 
   const handleSave = async () => {
-    if (!user || !profileId) return
+    if (!user) {
+      toast.error('Sessão inválida. Faça login novamente.')
+      return
+    }
+    if (!profileId) {
+      toast.error('Perfil de terapeuta não encontrado. Recarregue a página ou contate o suporte.')
+      return
+    }
     setLoading(true)
     try {
+      const priceNum = parseFloat(price)
+      const yearsNum = yearsExp.trim() === '' ? null : parseInt(yearsExp, 10)
+      const sessionsGoal =
+        sessionsPerMonthGoal.trim() === '' ? null : parseInt(sessionsPerMonthGoal, 10)
+      const minS = minSessionPrice.trim() === '' ? null : parseFloat(minSessionPrice)
+      const maxS = maxSessionPrice.trim() === '' ? null : parseFloat(maxSessionPrice)
+      const minPromo = minPromoPrice.trim() === '' ? null : parseFloat(minPromoPrice)
+
+      const profileBody: Record<string, unknown> = {
+        bio,
+        modality,
+        location,
+        city,
+        state,
+        country: country || null,
+        professionalName: professionalName || null,
+        nationality: nationality || null,
+        documentId: documentId || null,
+        languages: languages ? languages.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
+        therapies: selectedTherapies,
+        certifications,
+        wantCampaigns,
+        allowAutoScheduling,
+        publicTargetDescription: publicTargetDescription || null,
+        whatsapp: whatsapp || null,
+        professionalEmail: professionalEmail || null,
+        instagram: instagram || null,
+        facebook: facebook || null,
+        websiteUrl: websiteUrl || null,
+        baseCurrency: baseCurrency || null,
+        allowPromos,
+      }
+      if (Number.isFinite(priceNum) && priceNum >= 0) profileBody.price = priceNum
+      if (yearsNum !== null && Number.isFinite(yearsNum) && yearsNum >= 0) profileBody.yearsExp = yearsNum
+      else if (yearsExp.trim() === '') profileBody.yearsExp = null
+      if (sessionsGoal !== null && Number.isFinite(sessionsGoal) && sessionsGoal >= 0) {
+        profileBody.sessionsPerMonthGoal = sessionsGoal
+      } else if (sessionsPerMonthGoal.trim() === '') {
+        profileBody.sessionsPerMonthGoal = null
+      }
+      if (minS !== null && Number.isFinite(minS) && minS >= 0) profileBody.minSessionPrice = minS
+      else if (minSessionPrice.trim() === '') profileBody.minSessionPrice = null
+      if (maxS !== null && Number.isFinite(maxS) && maxS >= 0) profileBody.maxSessionPrice = maxS
+      else if (maxSessionPrice.trim() === '') profileBody.maxSessionPrice = null
+      if (minPromo !== null && Number.isFinite(minPromo) && minPromo >= 0) profileBody.minPromoPrice = minPromo
+      else if (minPromoPrice.trim() === '') profileBody.minPromoPrice = null
+
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[TerapeutaPerfil] save', { profileId, profileKeys: Object.keys(profileBody) })
+      }
+
       const [userRes, profileRes, paymentRes] = await Promise.all([
-        fetch(`/api/users/${user.id}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ name, phone, birthDate: birthDate || undefined }),
-        }),
-        fetch(`/api/therapists/${profileId}`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            bio, price: parseFloat(price), modality,
-            location, city, state, country: country || null,
-            professionalName: professionalName || null, nationality: nationality || null,
-            documentId: documentId || null,
-            languages: languages ? languages.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
-            yearsExp: yearsExp ? parseInt(yearsExp) : undefined,
-            therapies: selectedTherapies,
-            certifications,
-            sessionsPerMonthGoal: sessionsPerMonthGoal ? parseInt(sessionsPerMonthGoal, 10) : null,
-            wantCampaigns,
-            allowAutoScheduling,
-            publicTargetDescription: publicTargetDescription || null,
-            whatsapp: whatsapp || null,
-            professionalEmail: professionalEmail || null,
-            instagram: instagram || null,
-            facebook: facebook || null,
-            websiteUrl: websiteUrl || null,
-            minSessionPrice: minSessionPrice ? parseFloat(minSessionPrice) : null,
-            maxSessionPrice: maxSessionPrice ? parseFloat(maxSessionPrice) : null,
-            baseCurrency: baseCurrency || null,
-            allowPromos,
-            minPromoPrice: minPromoPrice ? parseFloat(minPromoPrice) : null,
-          }),
-        }),
-        fetch(`/api/therapists/${profileId}/payment`, {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            paymentMethods,
-            accountHolderName: accountHolderName || null,
-            bankName: bankName || null,
-            accountNumber: accountNumber || null,
-            pixKey: pixKey || null,
-          }),
-        }),
+        fetch(
+          `/api/users/${user.id}`,
+          withAuth({
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, phone, birthDate: birthDate || undefined }),
+          })
+        ),
+        fetch(
+          `/api/therapists/${profileId}`,
+          withAuth({
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(profileBody),
+          })
+        ),
+        fetch(
+          `/api/therapists/${profileId}/payment`,
+          withAuth({
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              paymentMethods,
+              accountHolderName: accountHolderName || null,
+              bankName: bankName || null,
+              accountNumber: accountNumber || null,
+              pixKey: pixKey || null,
+            }),
+          })
+        ),
       ])
 
       const [userData, profileData, paymentData] = await Promise.all([
-        userRes.json(),
-        profileRes.json(),
-        paymentRes.json(),
+        userRes.json().catch(() => ({})),
+        profileRes.json().catch(() => ({})),
+        paymentRes.json().catch(() => ({})),
       ])
 
       if (userData.success && profileData.success && paymentData.success) {
         toast.success('Perfil atualizado com sucesso!')
+        await loadProfile({ silent: true })
       } else {
-        toast.error(userData.error || profileData.error || paymentData.error || 'Erro ao salvar')
+        const parts = [
+          !userData.success && userData.error,
+          !profileData.success && profileData.error,
+          !paymentData.success && paymentData.error,
+        ].filter(Boolean)
+        if (process.env.NODE_ENV === 'development') {
+          console.warn('[TerapeutaPerfil] save partial failure', { userData, profileData, paymentData })
+        }
+        toast.error(parts.join(' · ') || 'Erro ao salvar')
       }
-    } catch {
+    } catch (e) {
+      if (process.env.NODE_ENV === 'development') {
+        console.error('[TerapeutaPerfil] save', e)
+      }
       toast.error('Erro de conexão')
     } finally {
       setLoading(false)
     }
   }
 
+  if (!user) {
+    return (
+      <div>
+        <Header title="Meu Perfil" description="Mantenha seus dados atualizados para atrair mais pacientes" />
+        <div className="p-6 max-w-3xl">
+          <p className="text-slate-600 text-sm">Faça login para acessar o perfil.</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (loadingProfile) {
+    return (
+      <div>
+        <Header title="Meu Perfil" description="Mantenha seus dados atualizados para atrair mais pacientes" />
+        <div className="p-6 max-w-3xl flex flex-col items-center justify-center min-h-[40vh] gap-3">
+          <div className="h-10 w-10 border-2 border-primary-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-600 text-sm font-medium">Carregando perfil...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!profile && !loadingProfile) {
+    return (
+      <div>
+        <Header title="Meu Perfil" description="Mantenha seus dados atualizados para atrair mais pacientes" />
+        <div className="p-6 max-w-3xl space-y-4 text-center">
+          <p className="text-slate-800 font-medium">Não foi possível carregar seus dados.</p>
+          {profileLoadError && (
+            <p className="text-sm text-red-600 bg-red-50 rounded-xl px-4 py-2 border border-red-100">{profileLoadError}</p>
+          )}
+          <p className="text-sm text-slate-500">
+            Confira no DevTools → Network se <code className="text-xs bg-slate-100 px-1 rounded">GET /api/profile</code> retorna
+            200. Se aparecer 401, faça login novamente.
+          </p>
+          <Button type="button" onClick={() => loadProfile()}>
+            Tentar novamente
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
+  const uploadBusy = loadingProfile || isUploading
+  const canCertOrDocUpload = !!profileId
+
   return (
     <div>
       <Header title="Meu Perfil" description="Mantenha seus dados atualizados para atrair mais pacientes" />
+      <input
+        ref={fileInputRef}
+        type="file"
+        tabIndex={-1}
+        accept={defaultAccept}
+        onChange={handleFileChange}
+        disabled={uploadBusy}
+        data-testid="therapist-unified-upload"
+        aria-hidden
+        className="pointer-events-none fixed left-4 top-20 z-[60] m-0 h-px w-px min-h-px min-w-px overflow-hidden border-0 p-0 opacity-[0.02]"
+      />
       <div className="p-6 max-w-3xl space-y-6">
         {/* Dados pessoais básicos (Ficha profissional) */}
         <div className="bg-white rounded-2xl border border-surface-200 shadow-card p-6 space-y-4">
@@ -468,17 +678,15 @@ export default function TerapeutaPerfilPage() {
                   <User size={40} className="text-slate-400" />
                 )}
               </div>
-              <label className="cursor-pointer flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium">
+              <button
+                type="button"
+                className="cursor-pointer flex items-center gap-1.5 text-sm text-primary-600 hover:text-primary-700 font-medium"
+                onClick={() => pickFile('profileImage')}
+                disabled={uploadBusy}
+              >
                 <Camera size={16} />
-                {avatarUploading ? 'Enviando...' : 'Foto profissional (fundo neutro)'}
-                <input
-                  type="file"
-                  accept="image/jpeg,image/png,image/webp,image/gif"
-                  className="sr-only"
-                  onChange={handleAvatarUpload}
-                  disabled={avatarUploading}
-                />
-              </label>
+                {isUploading ? 'Enviando...' : 'Enviar imagem — foto profissional (fundo neutro)'}
+              </button>
             </div>
             <div className="flex-1 grid sm:grid-cols-2 gap-4">
               <Input label="Nome completo" value={name} onChange={(e) => setName(e.target.value)} />
@@ -489,7 +697,25 @@ export default function TerapeutaPerfilPage() {
               <Input label="Estado (UF)" value={state} onChange={(e) => setState(e.target.value)} placeholder="SP" maxLength={2} />
               <Input label="Nacionalidade" value={nationality} onChange={(e) => setNationality(e.target.value)} placeholder="Ex.: Brasileira" />
               <Input label="Idioma(s) que fala" value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Ex.: Português, Inglês" />
-              <Input label="Documento de identidade / Passaporte" value={documentId} onChange={(e) => setDocumentId(e.target.value)} placeholder="Número do documento" />
+              <div className="sm:col-span-2 space-y-2">
+                <Input label="Documento de identidade / Passaporte" value={documentId} onChange={(e) => setDocumentId(e.target.value)} placeholder="Número do documento" />
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => pickFile('document')}
+                    disabled={uploadBusy || !canCertOrDocUpload}
+                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-surface-200 bg-surface-50 text-xs font-medium text-slate-700 hover:bg-surface-100 transition-colors disabled:opacity-50"
+                  >
+                    <Upload size={14} />
+                    {isUploading ? 'Enviando...' : 'Enviar PDF ou imagem (comprovante)'}
+                  </button>
+                  {documentUploadLabel && (
+                    <span className="text-xs text-slate-600 truncate max-w-[220px]" title={documentUploadLabel}>
+                      Arquivo: {documentUploadLabel}
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -1001,19 +1227,15 @@ export default function TerapeutaPerfilPage() {
             Envie diplomas, certificados ou comprovantes de formação. Os pacientes poderão visualizá-los no seu perfil.
           </p>
           <div className="flex flex-wrap items-center gap-3 mb-4">
-            <label className="cursor-pointer">
-              <input
-                type="file"
-                accept=".pdf,image/jpeg,image/png,image/webp"
-                className="hidden"
-                disabled={certificateUploading || !profileId}
-                onChange={handleCertificateUpload}
-              />
-              <span className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-surface-200 bg-surface-50 text-sm font-medium text-slate-700 hover:bg-surface-100 transition-colors">
-                <Upload size={16} />
-                {certificateUploading ? 'Enviando...' : 'Enviar certificado (PDF ou imagem)'}
-              </span>
-            </label>
+            <button
+              type="button"
+              onClick={() => pickFile('certification')}
+              disabled={uploadBusy || !canCertOrDocUpload}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-surface-200 bg-surface-50 text-sm font-medium text-slate-700 hover:bg-surface-100 transition-colors disabled:opacity-50"
+            >
+              <Upload size={16} />
+              {isUploading ? 'Enviando...' : 'Adicionar certificado (PDF ou JPG/PNG)'}
+            </button>
           </div>
           <div className="space-y-2">
             {certificateFiles.map((cert) => (

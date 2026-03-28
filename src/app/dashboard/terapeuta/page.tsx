@@ -75,7 +75,7 @@ export default async function TerapeutaDashboardPage() {
   return (
     <div>
       <Header
-        title={`Olá, ${userName.split(' ')[0]}! 👋`}
+        title={`Olá, ${userName.split(' ')[0]}!`}
         description={therapist.approved ? 'Seu perfil está ativo e visível para pacientes' : 'Aguardando aprovação do perfil'}
       />
 

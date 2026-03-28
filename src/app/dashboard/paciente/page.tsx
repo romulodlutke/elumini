@@ -56,7 +56,7 @@ export default async function PacienteDashboardPage() {
   return (
     <div>
       <Header
-        title={`Olá, ${firstName}! 🌿`}
+        title={`Olá, ${firstName}!`}
         description="Como você está se sentindo hoje?"
       />
 

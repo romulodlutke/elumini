@@ -16,14 +16,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F6F3EE' }}>
+    /*
+     * Mobile-first layout:
+     * - md-: Sidebar renderiza a barra inferior fixa; main recebe pb-16 para não
+     *        ficar tapado pela barra. Largura total em coluna única.
+     * - md+: Sidebar volta para coluna lateral; main ocupa o resto horizontal.
+     */
+    <div className="flex h-screen overflow-hidden bg-sand-100">
       <Sidebar
         userName={userName || 'Usuário'}
         userRole={userRole}
         userEmail={userEmail || ''}
         avatarUrl={null}
       />
-      <main className="flex-1 overflow-y-auto">
+      {/* pb-16 = espaço para a barra de navegação inferior no mobile */}
+      <main className="flex-1 overflow-y-auto pb-16 md:pb-0">
         {children}
       </main>
     </div>

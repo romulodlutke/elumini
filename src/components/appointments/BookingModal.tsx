@@ -66,7 +66,18 @@ export function BookingModal({ isOpen, onClose, therapist, onSuccess }: BookingM
     const dayOfWeek = date.getDay()
     const avail = therapist.availability.find((a) => a.dayOfWeek === dayOfWeek)
     if (!avail) return []
-    return generateTimeSlots(avail.startTime, avail.endTime, avail.slotDuration)
+    const slots = generateTimeSlots(avail.startTime, avail.endTime, avail.slotDuration)
+    if (process.env.NODE_ENV === 'development') {
+      console.debug('[BookingModal] horários gerados', {
+        date: format(date, 'yyyy-MM-dd'),
+        dayOfWeek,
+        start: avail.startTime,
+        end: avail.endTime,
+        slotDuration: avail.slotDuration,
+        slots,
+      })
+    }
+    return slots
   }
 
   const isDateAvailable = (date: Date): boolean => {

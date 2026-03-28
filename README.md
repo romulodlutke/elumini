@@ -1,4 +1,4 @@
-# EALumini 🌿
+# EALumini
 
 Marketplace SaaS de terapias holísticas — conectando pacientes a terapeutas certificados.
 
@@ -51,7 +51,8 @@ Preencha o `.env.local` com os dados do seu projeto Supabase:
 DATABASE_URL="postgresql://postgres:[SENHA]@db.[REF].supabase.co:5432/postgres?pgbouncer=true&connection_limit=1"
 DIRECT_URL="postgresql://postgres:[SENHA]@db.[REF].supabase.co:5432/postgres"
 
-# Acesse: Settings → API
+# Supabase → Connect: URL + Anon key (Legacy JWT eyJ...). Evite sb_publishable_ em ANON_KEY se aparecer erro JWS.
+# Settings → API → Secret keys: service_role (JWT legacy ou sb_secret_...) em SUPABASE_SERVICE_ROLE_KEY (só servidor).
 NEXT_PUBLIC_SUPABASE_URL="https://[REF].supabase.co"
 NEXT_PUBLIC_SUPABASE_ANON_KEY="..."
 SUPABASE_SERVICE_ROLE_KEY="..."
@@ -104,9 +105,14 @@ Acesse: **http://localhost:3000**
 
 ### Buckets de Storage
 
-No painel do Supabase, crie os seguintes buckets em **Storage**:
-- `avatars` (público)
-- `documents` (privado)
+Sem estes buckets, o upload devolve **Bucket not found**. No Supabase: **Storage → New bucket** (os nomes têm de ser **exatamente** estes):
+
+| Bucket       | Uso                         | Sugestão |
+|-------------|-----------------------------|----------|
+| `documents` | Certificados PDF/imagem, comprovantes | **Public bucket** ligado, para as URLs públicas geradas pelo app funcionarem no navegador. |
+| `avatars`   | Foto de perfil              | **Public bucket** ligado. |
+
+Se o bucket não existir ou o nome tiver typo (`document` vs `documents`), o upload falha.
 
 ### Row Level Security (RLS)
 

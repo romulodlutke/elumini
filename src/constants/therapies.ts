@@ -18,8 +18,5 @@ export const THERAPY_OPTIONS = [
 
 export type TherapyOption = (typeof THERAPY_OPTIONS)[number]
 
-/** Para a landing page: nome + emoji */
-export const THERAPY_HIGHLIGHTS = THERAPY_OPTIONS.map((name, i) => {
-  const emojis = ['✨', '🌿', '🧘', '📜', '🔮', '🫶', '🌸', '🌀', '💫', '🌺', '🧲']
-  return { name, emoji: emojis[i] ?? '✨' }
-})
+/** Para a landing page: lista das terapias em destaque */
+export const THERAPY_HIGHLIGHTS = [...THERAPY_OPTIONS]

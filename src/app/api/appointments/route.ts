@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getSessionFromRequest } from '@/lib/auth'
 import { z } from 'zod'
 import { calculateCommission } from '@/lib/utils'
+import { sendWhatsAppMessage } from '@/services/whatsappService'
 
 const createSchema = z.object({
   therapistProfileId: z.string().min(1),
@@ -115,7 +116,7 @@ export async function POST(request: NextRequest) {
 
     const patientProfile = await prisma.patientProfile.findUnique({
       where: { userId: session.sub },
-      select: { id: true },
+      select: { id: true, user: { select: { name: true } } },
     })
     if (!patientProfile) {
       return NextResponse.json({ success: false, error: 'Perfil de paciente não encontrado' }, { status: 404 })
@@ -162,8 +163,9 @@ export async function POST(request: NextRequest) {
     const dayOfWeek = dateObj.getDay()
     const timeStr = time
 
+    // Alinhar com generateTimeSlots: endTime é inclusivo para o *início* do slot (ex.: 09:00–17:00 permite 17:00).
     const hasAvailability = therapist.availability.some(
-      (a) => a.dayOfWeek === dayOfWeek && timeStr >= a.startTime && timeStr < a.endTime
+      (a) => a.dayOfWeek === dayOfWeek && timeStr >= a.startTime && timeStr <= a.endTime
     )
     if (!hasAvailability) {
       return NextResponse.json({ success: false, error: 'Horário não disponível' }, { status: 400 })
@@ -189,6 +191,16 @@ export async function POST(request: NextRequest) {
         notes: notes || null,
       },
     })
+
+    const patientName = patientProfile.user?.name ?? 'Paciente'
+    const datetime = appointment.date.toLocaleString('pt-BR', {
+      timeZone: 'America/Sao_Paulo',
+      dateStyle: 'short',
+      timeStyle: 'short',
+    })
+    void sendWhatsAppMessage(
+      `Novo agendamento:\nPaciente: ${patientName}\nData: ${datetime}`
+    )
 
     return NextResponse.json({
       success: true,

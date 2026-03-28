@@ -39,9 +39,19 @@ export async function generateRefreshToken(payload: Omit<JWTPayload, 'iat' | 'ex
 // VERIFICAÇÃO DE TOKENS
 // ==========================================
 
+/** Formato compacto mínimo JWT (evita chamar jose com string vazia/lixo → "Invalid Compact JWS"). */
+function looksLikeCompactJwt(token: string): boolean {
+  const t = token.trim()
+  if (t.length < 20) return false
+  const parts = t.split('.')
+  return parts.length === 3 && parts.every((p) => p.length > 0)
+}
+
 export async function verifyAccessToken(token: string): Promise<JWTPayload | null> {
+  const t = token.trim()
+  if (!t || !looksLikeCompactJwt(t)) return null
   try {
-    const { payload } = await jwtVerify(token, JWT_SECRET)
+    const { payload } = await jwtVerify(t, JWT_SECRET)
     return payload as unknown as JWTPayload
   } catch {
     return null
@@ -49,8 +59,10 @@ export async function verifyAccessToken(token: string): Promise<JWTPayload | nul
 }
 
 export async function verifyRefreshToken(token: string): Promise<JWTPayload | null> {
+  const t = token.trim()
+  if (!t || !looksLikeCompactJwt(t)) return null
   try {
-    const { payload } = await jwtVerify(token, JWT_REFRESH_SECRET)
+    const { payload } = await jwtVerify(t, JWT_REFRESH_SECRET)
     return payload as unknown as JWTPayload
   } catch {
     return null
@@ -65,15 +77,18 @@ export async function getSessionFromRequest(request: NextRequest): Promise<JWTPa
   const authHeader = request.headers.get('Authorization')
 
   if (authHeader?.startsWith('Bearer ')) {
-    const token = authHeader.substring(7)
-    return verifyAccessToken(token)
+    const bearerToken = authHeader.slice(7).trim()
+    if (bearerToken && looksLikeCompactJwt(bearerToken)) {
+      const fromBearer = await verifyAccessToken(bearerToken)
+      if (fromBearer) return fromBearer
+    }
+    // Bearer vazio, inválido ou expirado: ainda tentar cookie (evita bloquear upload quando o Zustand tem lixo em memória)
   }
 
-  // Fallback para cookie httpOnly (usado em server components)
   const cookieStore = cookies()
-  const token = cookieStore.get('access_token')?.value
-  if (token) {
-    return verifyAccessToken(token)
+  const cookieToken = cookieStore.get('access_token')?.value
+  if (cookieToken) {
+    return verifyAccessToken(cookieToken)
   }
 
   return null

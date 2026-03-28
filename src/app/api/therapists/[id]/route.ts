@@ -6,27 +6,25 @@ import { prisma } from '@/lib/prisma'
 import { getSessionFromRequest } from '@/lib/auth'
 import { Modality } from '@prisma/client'
 
-function countWords(s: string): number {
-  return s
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean).length
+/** JSON.stringify(NaN) → null; omit invalid numbers. Do not map null→undefined here when field is nullable in DB. */
+function preprocessOptionalNumber(v: unknown): unknown {
+  if (v === undefined || v === null) return undefined
+  if (typeof v === 'number' && Number.isNaN(v)) return undefined
+  return v
+}
+
+/** Accept explicit null from client (clear field); strip NaN only. */
+function preprocessNullableNumber(v: unknown): unknown {
+  if (v === undefined) return undefined
+  if (v === null) return null
+  if (typeof v === 'number' && Number.isNaN(v)) return undefined
+  return v
 }
 
 const updateSchema = z.object({
-  bio: z
-    .string()
-    .max(2500)
-    .optional()
-    .nullable()
-    .refine(
-      (v) =>
-        v == null ||
-        v.trim() === '' ||
-        (countWords(v) >= 100 && countWords(v) <= 300),
-      'A descrição profissional deve ter entre 100 e 300 palavras'
-    ),
-  price: z.number().min(0).optional(),
+  // Fix: 100–300 word rule blocked every save while terapeutas edited other fields; keep length cap only.
+  bio: z.string().max(2500).optional().nullable(),
+  price: z.preprocess(preprocessOptionalNumber, z.number().min(0).optional()),
   modality: z.nativeEnum(Modality).optional(),
   location: z.string().max(200).optional().nullable(),
   city: z.string().max(100).optional().nullable(),
@@ -36,10 +34,10 @@ const updateSchema = z.object({
   nationality: z.string().max(100).optional().nullable(),
   documentId: z.string().max(100).optional().nullable(),
   languages: z.array(z.string()).optional(),
-  yearsExp: z.number().int().min(0).optional().nullable(),
+  yearsExp: z.preprocess(preprocessNullableNumber, z.number().int().min(0).optional().nullable()),
   therapies: z.array(z.string()).optional(),
   certifications: z.array(z.string()).optional(),
-  sessionsPerMonthGoal: z.number().int().min(0).optional().nullable(),
+  sessionsPerMonthGoal: z.preprocess(preprocessNullableNumber, z.number().int().min(0).optional().nullable()),
   publicTargetDescription: z.string().max(2000).optional().nullable(),
   // Dados de contato
   whatsapp: z.string().max(30).optional().nullable(),
@@ -48,11 +46,11 @@ const updateSchema = z.object({
   facebook: z.string().max(250).optional().nullable(),
   websiteUrl: z.string().url().optional().nullable().or(z.literal('')),
   // Preço oficial da sessão base
-  minSessionPrice: z.number().min(0).optional().nullable(),
-  maxSessionPrice: z.number().min(0).optional().nullable(),
+  minSessionPrice: z.preprocess(preprocessNullableNumber, z.number().min(0).optional().nullable()),
+  maxSessionPrice: z.preprocess(preprocessNullableNumber, z.number().min(0).optional().nullable()),
   baseCurrency: z.string().max(10).optional().nullable(),
   allowPromos: z.boolean().optional(),
-  minPromoPrice: z.number().min(0).optional().nullable(),
+  minPromoPrice: z.preprocess(preprocessNullableNumber, z.number().min(0).optional().nullable()),
   timezone: z.string().max(80).optional().nullable(),
   wantCampaigns: z.boolean().optional(),
   allowAutoScheduling: z.boolean().optional(),
@@ -82,6 +80,9 @@ export async function PATCH(
     }
 
     const body = await request.json()
+    if (process.env.NODE_ENV === 'development') {
+      console.log('[PATCH THERAPIST PROFILE] id=%s keys=%s', params.id, Object.keys(body || {}).join(','))
+    }
     const validated = updateSchema.safeParse(body)
 
     if (!validated.success) {

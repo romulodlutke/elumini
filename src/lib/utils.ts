@@ -112,11 +112,17 @@ export function generateTimeSlots(
   let current = startHour * 60 + startMin
   const end = endHour * 60 + endMin
 
-  while (current + durationMinutes <= end) {
+  // Fix: `current + duration <= end` dropped the last start (e.g. 17:00 for 09:00–17:00 with 60m slots).
+  // endTime is treated as inclusive for slot *starts* (último horário exibido = endTime).
+  while (current <= end) {
     const h = Math.floor(current / 60).toString().padStart(2, '0')
     const m = (current % 60).toString().padStart(2, '0')
     slots.push(`${h}:${m}`)
     current += durationMinutes
+  }
+
+  if (process.env.NODE_ENV === 'development') {
+    console.debug('[generateTimeSlots]', { startTime, endTime, durationMinutes, count: slots.length, slots })
   }
 
   return slots

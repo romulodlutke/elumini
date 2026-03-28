@@ -20,18 +20,30 @@ const variantStyles = {
   sand:      'bg-sand-100 text-sand-800 border border-sand-300 hover:bg-sand-200 active:bg-sand-300',
 }
 
+/* min-h-[44px] garante o alvo de toque mínimo para mobile (WCAG 2.5.5 / Apple HIG) */
 const sizeStyles = {
-  sm:  'px-4 py-2 text-xs font-semibold rounded-pill gap-1.5 tracking-wide',
-  md:  'px-5 py-2.5 text-sm font-semibold rounded-pill gap-2',
-  lg:  'px-7 py-3 text-sm font-semibold rounded-pill gap-2',
-  xl:  'px-8 py-4 text-base font-semibold rounded-pill gap-2.5',
+  sm:  'px-4 py-2 text-xs font-semibold rounded-pill gap-1.5 tracking-wide min-h-[44px]',
+  md:  'px-5 py-2.5 text-sm font-semibold rounded-pill gap-2 min-h-[44px]',
+  lg:  'px-7 py-3 text-sm font-semibold rounded-pill gap-2 min-h-[44px]',
+  xl:  'px-8 py-4 text-base font-semibold rounded-pill gap-2.5 min-h-[44px]',
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', loading, fullWidth, children, disabled, ...props }, ref) => {
+  ({
+    className,
+    variant = 'primary',
+    size = 'md',
+    loading,
+    fullWidth,
+    children,
+    disabled,
+    type = 'button',
+    ...props
+  }, ref) => {
     return (
       <button
         ref={ref}
+        type={type}
         disabled={disabled || loading}
         className={cn(
           'inline-flex items-center justify-center transition-all duration-200',

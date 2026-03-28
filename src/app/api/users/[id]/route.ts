@@ -4,6 +4,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { prisma } from '@/lib/prisma'
 import { getSessionFromRequest } from '@/lib/auth'
+import { jsonSafeSerialize } from '@/lib/json-safe'
 import bcrypt from 'bcryptjs'
 
 const updateProfileSchema = z.object({
@@ -31,20 +32,22 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
       return NextResponse.json({ success: false, error: 'Sem permissão' }, { status: 403 })
     }
 
-    const user = await prisma.user.findUnique({
+    const row = await prisma.user.findUnique({
       where: { id: params.id },
       include: {
         therapistProfile: { include: { availability: true, targetAudience: true } },
         patientProfile: true,
       },
-      omit: { password: true },
-    } as any)
+    })
 
-    if (!user) {
+    if (!row) {
       return NextResponse.json({ success: false, error: 'Usuário não encontrado' }, { status: 404 })
     }
 
-    return NextResponse.json({ success: true, data: user })
+    const { password: _removed, ...withoutPassword } = row as Record<string, unknown> & {
+      password?: string
+    }
+    return NextResponse.json({ success: true, data: jsonSafeSerialize(withoutPassword) })
   } catch (error) {
     console.error('[GET USER]', error)
     return NextResponse.json({ success: false, error: 'Erro interno' }, { status: 500 })

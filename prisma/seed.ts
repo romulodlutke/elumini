@@ -4,7 +4,7 @@ import bcrypt from 'bcryptjs'
 const prisma = new PrismaClient()
 
 async function main() {
-  console.log('🌱 Iniciando seed do banco de dados EALumini...')
+  console.log('Iniciando seed do banco de dados EALumini...')
 
   // Limpar dados existentes (ordem importa por causa das FK)
   await prisma.notification.deleteMany()
@@ -27,7 +27,7 @@ async function main() {
       allowNewSignups: true,
     },
   })
-  console.log('✅ Platform config criada:', config.id)
+  console.log('Platform config criada:', config.id)
 
   // ==========================================
   // USUÁRIO ADMIN
@@ -41,7 +41,7 @@ async function main() {
       active: true,
     },
   })
-  console.log('✅ Admin criado:', adminUser.email)
+  console.log('Admin criado:', adminUser.email)
 
   // ==========================================
   // TERAPEUTAS
@@ -171,7 +171,7 @@ async function main() {
         },
       },
     })
-    console.log('✅ Terapeuta criado:', user.email)
+    console.log('Terapeuta criado:', user.email)
   }
 
   // ==========================================
@@ -241,7 +241,7 @@ async function main() {
         },
       },
     })
-    console.log('✅ Paciente criado:', user.email)
+    console.log('Paciente criado:', user.email)
   }
 
   // ==========================================
@@ -265,7 +265,7 @@ async function main() {
         durationMinutes: 60,
       },
     })
-    console.log('✅ Agendamento de exemplo criado:', appointment.id)
+    console.log('Agendamento de exemplo criado:', appointment.id)
 
     // Agendamento concluído com avaliação
     const completedAppointment = await prisma.appointment.create({
@@ -296,7 +296,7 @@ async function main() {
           comment: 'Sessão incrível! A terapeuta foi muito atenciosa e profissional. Já me sinto muito melhor após a primeira consulta.',
         },
       })
-      console.log('✅ Avaliação de exemplo criada')
+      console.log('Avaliação de exemplo criada')
 
       // Notificação de boas-vindas para o admin
       await prisma.notification.create({
@@ -310,8 +310,8 @@ async function main() {
     }
   }
 
-  console.log('\n🎉 Seed concluído com sucesso!')
-  console.log('\n📋 Credenciais de acesso:')
+  console.log('\nSeed concluído com sucesso!')
+  console.log('\nCredenciais de acesso:')
   console.log('   Admin:     admin@ealumini.com     | Admin@123')
   console.log('   Terapeuta: ana.ribeiro@ealumini.com | Terapeuta@123')
   console.log('   Paciente:  marcos.pereira@email.com   | Paciente@123')
@@ -319,7 +319,7 @@ async function main() {
 
 main()
   .catch((e) => {
-    console.error('❌ Erro no seed:', e)
+    console.error('Erro no seed:', e)
     process.exit(1)
   })
   .finally(async () => {

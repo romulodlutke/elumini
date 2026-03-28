@@ -222,7 +222,7 @@ export default async function AdminReportsPage() {
                       <div className="flex-1 min-w-0">
                         <p className="text-xs font-medium text-slate-900 truncate">{t.user.name}</p>
                         <p className="text-xs text-slate-500">
-                          {t.reviewCount} avaliações · ⭐ {Number(t.rating).toFixed(1)}
+                          {t.reviewCount} avaliações · média {Number(t.rating).toFixed(1)}
                         </p>
                       </div>
                       <span className="text-xs font-semibold text-teal-700">

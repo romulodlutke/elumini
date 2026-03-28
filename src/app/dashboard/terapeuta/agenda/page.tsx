@@ -4,6 +4,7 @@ import { Header } from '@/components/dashboard/Header'
 import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { formatCurrency, formatDateTime, appointmentStatusConfig } from '@/lib/utils'
+import { withAuth } from '@/lib/auth-fetch'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
 import { useEffect, useState } from 'react'
@@ -94,7 +95,7 @@ export default function TerapeutaAgendaPage() {
     try {
       const params = new URLSearchParams({ perPage: '30' })
       if (statusFilter) params.set('status', statusFilter)
-      const res = await fetch(`/api/appointments?${params}`)
+      const res = await fetch(`/api/appointments?${params}`, withAuth())
       const data = await res.json()
       if (data.success) setAppointments(data.data.items)
     } catch {
@@ -106,11 +107,14 @@ export default function TerapeutaAgendaPage() {
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      const res = await fetch(`/api/appointments/${id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-      })
+      const res = await fetch(
+        `/api/appointments/${id}`,
+        withAuth({
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status }),
+        })
+      )
       const data = await res.json()
       if (data.success) {
         toast.success(
@@ -137,7 +141,7 @@ export default function TerapeutaAgendaPage() {
   const loadAvailability = async () => {
     setLoadingAvail(true)
     try {
-      const res = await fetch('/api/availability')
+      const res = await fetch('/api/availability', withAuth())
       const data = await res.json()
       if (data.success) {
         setSlots(data.data)
@@ -168,11 +172,17 @@ export default function TerapeutaAgendaPage() {
   const saveAvailability = async () => {
     setSavingAvail(true)
     try {
-      const res = await fetch('/api/availability', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ slots, timezone }),
-      })
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[Agenda] save availability', { slotsCount: slots.length, timezone })
+      }
+      const res = await fetch(
+        '/api/availability',
+        withAuth({
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ slots, timezone }),
+        })
+      )
       const data = await res.json()
       if (data.success) {
         setSlots(data.data)

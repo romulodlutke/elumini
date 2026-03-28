@@ -219,14 +219,13 @@ export default function HomePage() {
             <p className="text-sand-500 text-sm">Mais de 30 modalidades disponíveis na plataforma.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-3">
-            {THERAPY_HIGHLIGHTS.map((therapy) => (
+            {THERAPY_HIGHLIGHTS.map((name) => (
               <Link
-                key={therapy.name}
-                href={`/register?therapy=${encodeURIComponent(therapy.name)}`}
+                key={name}
+                href={`/register?therapy=${encodeURIComponent(name)}`}
                 className="group flex items-center gap-2 px-5 py-2.5 bg-sand-100 hover:bg-brand-500 border border-sand-200 hover:border-brand-500 text-sand-700 hover:text-white rounded-pill text-sm font-medium transition-all duration-200"
               >
-                <span className="text-base">{therapy.emoji}</span>
-                {therapy.name}
+                {name}
               </Link>
             ))}
           </div>
