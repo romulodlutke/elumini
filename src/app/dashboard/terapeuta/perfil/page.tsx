@@ -3,6 +3,7 @@
 import { Header } from '@/components/dashboard/Header'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { PhoneInput } from '@/components/ui/PhoneInput'
 import { Badge } from '@/components/ui/Badge'
 import { useAuthStore } from '@/hooks/useAuth'
 import toast from 'react-hot-toast'
@@ -41,7 +42,6 @@ export default function TerapeutaPerfilPage() {
   const [profileId, setProfileId] = useState<string | null>(null)
 
   const [name, setName] = useState('')
-  const [phone, setPhone] = useState('')
   const [birthDate, setBirthDate] = useState('')
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [professionalName, setProfessionalName] = useState('')
@@ -234,7 +234,6 @@ export default function TerapeutaPerfilPage() {
       }
 
       setName(row.name || '')
-      setPhone((row as { phone?: string | null }).phone || '')
       setBirthDate(
         (row as { birthDate?: string | null }).birthDate
           ? String((row as { birthDate?: string }).birthDate).slice(0, 10)
@@ -261,7 +260,7 @@ export default function TerapeutaPerfilPage() {
         setSessionsPerMonthGoal(tp.sessionsPerMonthGoal != null ? String(tp.sessionsPerMonthGoal) : '')
         setWantCampaigns(tp.wantCampaigns ?? false)
         setAllowAutoScheduling(tp.allowAutoScheduling ?? false)
-        setWhatsapp(tp.whatsapp || '')
+        setWhatsapp(tp.whatsapp || (row as { phone?: string | null }).phone || '')
         setProfessionalEmail(tp.professionalEmail || '')
         setInstagram(tp.instagram || '')
         setFacebook(tp.facebook || '')
@@ -282,6 +281,7 @@ export default function TerapeutaPerfilPage() {
         setProfileId(null)
         setDocumentExists(false)
         setDocumentFileName(null)
+        setWhatsapp((row as { phone?: string | null }).phone || '')
       }
     } catch (e) {
       console.error('Erro ao carregar perfil:', e)
@@ -587,7 +587,11 @@ export default function TerapeutaPerfilPage() {
           withAuth({
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, phone, birthDate: birthDate || undefined }),
+            body: JSON.stringify({
+              name,
+              phone: whatsapp.trim() ? whatsapp : '',
+              birthDate: birthDate || undefined,
+            }),
           })
         ),
         fetch(
@@ -825,8 +829,15 @@ export default function TerapeutaPerfilPage() {
             Dados de contato
           </h2>
           <div className="grid sm:grid-cols-2 gap-4">
-            <Input label="Telefone com código do país" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+55 11 9xxxx-xxxx" />
-            <Input label="WhatsApp" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="+55 11 9xxxx-xxxx" />
+            <div className="sm:col-span-2">
+              <PhoneInput
+                label="WhatsApp / Telefone"
+                value={whatsapp}
+                onChange={setWhatsapp}
+                hint="Formato internacional: DDI + DDD + número (ex.: +55 11 982586339)."
+                className={uploadBusy ? 'opacity-50 pointer-events-none' : undefined}
+              />
+            </div>
             <Input label="Email profissional" type="email" value={professionalEmail} onChange={(e) => setProfessionalEmail(e.target.value)} placeholder="contato@seusite.com" />
             <Input label="Instagram" value={instagram} onChange={(e) => setInstagram(e.target.value)} placeholder="@seuusuario" />
             <Input label="Facebook" value={facebook} onChange={(e) => setFacebook(e.target.value)} placeholder="URL ou nome do perfil" />

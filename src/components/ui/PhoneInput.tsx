@@ -111,12 +111,12 @@ export function PhoneInput({ value, onChange, label, hint, className }: PhoneInp
   }, [value])
 
   const inputClass =
-    'px-3 py-3 text-sm border border-surface-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary-500 bg-white'
+    'px-3 py-2.5 text-sm border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-600/20 focus:border-green-600 bg-white'
 
   return (
     <div className={cn('space-y-1.5', className)}>
       {label && (
-        <label className="block text-xs font-semibold uppercase tracking-wider text-sand-700">
+        <label className="block text-xs font-semibold text-slate-700">
           {label}
         </label>
       )}
