@@ -1,9 +1,8 @@
 'use client'
 
 import { cn } from '@/lib/utils'
-import { THERAPY_OPTIONS } from '@/constants/therapies'
 import { SlidersHorizontal, X, ChevronDown, Star } from 'lucide-react'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 const RATING_OPTIONS = [
   { label: '4.5+', value: 4.5 },
@@ -29,6 +28,18 @@ interface SearchFiltersProps {
 
 export function SearchFilters({ values, onChange, onReset, className }: SearchFiltersProps) {
   const [openSection, setOpenSection] = useState<string | null>('therapies')
+  const [therapyOptions, setTherapyOptions] = useState<string[]>([])
+
+  useEffect(() => {
+    fetch('/api/therapy-types')
+      .then((r) => r.json())
+      .then((d) => {
+        if (d.success && Array.isArray(d.data)) {
+          setTherapyOptions(d.data.map((x: { name: string }) => x.name))
+        }
+      })
+      .catch(() => setTherapyOptions([]))
+  }, [])
 
   const toggleSection = (section: string) =>
     setOpenSection(openSection === section ? null : section)
@@ -80,7 +91,10 @@ export function SearchFilters({ values, onChange, onReset, className }: SearchFi
         count={values.therapies.length > 0 ? values.therapies.length : undefined}
       >
         <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
-          {THERAPY_OPTIONS.map((therapy) => {
+          {therapyOptions.length === 0 && (
+            <p className="text-xs text-slate-400 py-1">Carregando terapias…</p>
+          )}
+          {therapyOptions.map((therapy) => {
             const checked = values.therapies.includes(therapy)
             return (
               <label key={therapy} className="flex items-center gap-3 cursor-pointer group py-0.5">

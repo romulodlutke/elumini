@@ -23,6 +23,7 @@ interface TherapistService {
   description: string | null
   durationMinutes: number
   price: number
+  promoPrice?: number | null
   currency: string
   modality: string
 }
@@ -31,6 +32,7 @@ interface Therapist {
   id: string
   therapies: string[]
   price: number
+  profilePrice?: number
   modality: string
   location: string | null
   city: string | null

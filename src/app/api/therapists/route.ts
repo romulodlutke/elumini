@@ -3,6 +3,7 @@ export const dynamic = 'force-dynamic'
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
 import { Modality } from '@prisma/client'
+import { listingPriceFromServices } from '@/lib/therapist-pricing'
 
 export async function GET(request: NextRequest) {
   try {
@@ -41,8 +42,32 @@ export async function GET(request: NextRequest) {
       where.OR = [{ modality }, { modality: 'AMBOS' }]
     }
 
-    if (minPrice !== undefined) where.price = { ...where.price, gte: minPrice }
-    if (maxPrice !== undefined) where.price = { ...where.price, lte: maxPrice }
+    // Preço: sem serviços ativos usa profile.price; com serviços, pelo menos um serviço com price na faixa (aprox.; promo não entra no filtro SQL)
+    if (minPrice !== undefined || maxPrice !== undefined) {
+      const servicePriceRange: Record<string, unknown> = { active: true }
+      if (minPrice !== undefined) Object.assign(servicePriceRange, { price: { gte: minPrice } })
+      if (maxPrice !== undefined) {
+        const prev = servicePriceRange.price as Record<string, unknown> | undefined
+        servicePriceRange.price =
+          prev && typeof prev === 'object'
+            ? { ...prev, lte: maxPrice }
+            : { lte: maxPrice }
+      }
+      const noServicesPrice: Record<string, unknown> = {}
+      if (minPrice !== undefined) Object.assign(noServicesPrice, { gte: minPrice })
+      if (maxPrice !== undefined) Object.assign(noServicesPrice, { lte: maxPrice })
+      where.AND = [
+        ...(Array.isArray(where.AND) ? where.AND : []),
+        {
+          OR: [
+            {
+              AND: [{ services: { none: { active: true } } }, { price: noServicesPrice }],
+            },
+            { services: { some: servicePriceRange } },
+          ],
+        },
+      ]
+    }
     if (minRating !== undefined) where.rating = { gte: minRating }
     if (city) where.city = { contains: city, mode: 'insensitive' }
     if (state) where.state = state
@@ -60,7 +85,16 @@ export async function GET(request: NextRequest) {
           },
           services: {
             where: { active: true },
-            select: { id: true, name: true, description: true, durationMinutes: true, price: true, currency: true, modality: true },
+            select: {
+              id: true,
+              name: true,
+              description: true,
+              durationMinutes: true,
+              price: true,
+              promoPrice: true,
+              currency: true,
+              modality: true,
+            },
           },
         },
         orderBy: [{ featured: 'desc' }, { rating: 'desc' }, { reviewCount: 'desc' }],
@@ -70,10 +104,26 @@ export async function GET(request: NextRequest) {
       prisma.therapistProfile.count({ where }),
     ])
 
+    const items = therapists.map((t) => {
+      const profilePrice = Number(t.price)
+      const listingPrice = listingPriceFromServices(
+        t.services.map((s) => ({
+          price: Number(s.price),
+          promoPrice: s.promoPrice != null ? Number(s.promoPrice) : null,
+        })),
+        profilePrice
+      )
+      return {
+        ...t,
+        price: listingPrice,
+        profilePrice,
+      }
+    })
+
     return NextResponse.json({
       success: true,
       data: {
-        items: therapists,
+        items,
         total,
         page,
         perPage,

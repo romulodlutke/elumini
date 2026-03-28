@@ -32,23 +32,26 @@ test.describe.serial('Therapist profile', () => {
     monitor.assertNoFetchFailed()
   })
 
-  test('Add service — appears in list', async ({ page }) => {
+  test('Add therapy — appears in list (Terapias page)', async ({ page }) => {
     const monitor = attachPageMonitoring(page)
     await loginAsTherapist(page)
-    await page.goto(ROUTES.therapistProfile)
+    await page.goto(ROUTES.therapistTerapias)
 
-    const serviceName = `Serviço E2E ${Date.now()}`
+    const therapyName = `Terapia E2E ${Date.now()}`
 
-    await page.getByRole('button', { name: /Adicionar serviço/i }).click()
-    await expect(page.getByRole('heading', { name: /Novo serviço|Editar serviço/ })).toBeVisible()
+    await page.getByRole('button', { name: /Adicionar terapia/i }).first().click()
+    await expect(page.getByRole('heading', { name: /Adicionar terapia/i })).toBeVisible()
 
-    const servicePanel = page.getByRole('heading', { name: 'Novo serviço' }).locator('..')
-    await servicePanel.getByLabel('Nome do serviço').fill(serviceName)
-    await servicePanel.getByLabel('Preço', { exact: true }).fill('199.90')
+    await page.getByRole('radio', { name: /Outras/i }).check()
+    await page.getByRole('button', { name: 'Continuar' }).click()
 
-    await servicePanel.getByRole('button', { name: 'Adicionar' }).click()
+    await page.getByLabel('Nome da terapia').fill(therapyName)
+    await page.getByLabel(/Valor da sessão/i).fill('199.90')
+    await page.getByLabel(/Duração \(minutos\)/i).fill('60')
 
-    await expect(page.getByText(serviceName).first()).toBeVisible({ timeout: 15_000 })
+    await page.getByRole('button', { name: 'Salvar terapia' }).click()
+
+    await expect(page.getByText(therapyName).first()).toBeVisible({ timeout: 15_000 })
     monitor.assertNoFetchFailed()
   })
 

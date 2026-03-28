@@ -3,6 +3,7 @@
 import { Modal } from '@/components/ui/Modal'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency, generateTimeSlots, modalityLabels } from '@/lib/utils'
+import { effectiveServiceCharge } from '@/lib/therapist-pricing'
 import { useState } from 'react'
 import { format, addDays, startOfDay } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -23,6 +24,7 @@ interface TherapistService {
   description: string | null
   durationMinutes: number
   price: number
+  promoPrice?: number | null
   currency: string
   modality: string
 }
@@ -56,7 +58,9 @@ export function BookingModal({ isOpen, onClose, therapist, onSuccess }: BookingM
 
   const daysInView = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i))
 
-  const price = selectedService ? selectedService.price : Number(therapist.price)
+  const price = selectedService
+    ? effectiveServiceCharge({ price: selectedService.price, promoPrice: selectedService.promoPrice })
+    : Number(therapist.price)
   const durationMinutes = selectedService ? selectedService.durationMinutes : 60
   const currency = selectedService ? selectedService.currency : 'BRL'
   const modality = selectedService ? selectedService.modality : 'AMBOS'
@@ -210,7 +214,7 @@ export function BookingModal({ isOpen, onClose, therapist, onSuccess }: BookingM
                         )}
                       </div>
                       <p className="font-bold text-slate-900 flex-shrink-0">
-                        {formatCurrency(svc.price, svc.currency)}
+                        {formatCurrency(effectiveServiceCharge({ price: svc.price, promoPrice: svc.promoPrice }), svc.currency)}
                       </p>
                     </div>
                   </button>

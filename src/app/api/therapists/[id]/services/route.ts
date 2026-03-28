@@ -23,17 +23,24 @@ export async function GET(
   { params }: { params: { id: string } }
 ) {
   try {
+    const session = await getSessionFromRequest(request)
     const profile = await prisma.therapistProfile.findUnique({
       where: { id: params.id },
-      select: { id: true },
+      select: { id: true, userId: true },
     })
 
     if (!profile) {
       return NextResponse.json({ success: false, error: 'Perfil não encontrado' }, { status: 404 })
     }
 
+    const isOwnerOrAdmin =
+      (session?.sub === profile.userId && session?.role === 'TERAPEUTA') || session?.role === 'ADMIN'
+
     const services = await prisma.therapistService.findMany({
-      where: { therapistId: params.id, active: true },
+      where: {
+        therapistId: params.id,
+        ...(isOwnerOrAdmin ? {} : { active: true }),
+      },
       orderBy: { createdAt: 'asc' },
     })
 
@@ -73,10 +80,6 @@ export async function POST(
       select: {
         id: true,
         userId: true,
-        minSessionPrice: true,
-        maxSessionPrice: true,
-        allowPromos: true,
-        minPromoPrice: true,
       },
     })
 
@@ -100,40 +103,8 @@ export async function POST(
 
     const { price, promoPrice, ...rest } = validated.data
 
-    // Validação: preço dentro da faixa oficial (min/max sessão base)
-    const minPrice = profile.minSessionPrice != null ? Number(profile.minSessionPrice) : null
-    const maxPrice = profile.maxSessionPrice != null ? Number(profile.maxSessionPrice) : null
-    if (minPrice != null && price < minPrice) {
-      return NextResponse.json(
-        { success: false, error: `O preço do serviço não pode ser menor que o preço mínimo da sessão (${minPrice})` },
-        { status: 400 }
-      )
-    }
-    if (maxPrice != null && price > maxPrice) {
-      return NextResponse.json(
-        { success: false, error: `O preço do serviço não pode ser maior que o preço máximo da sessão (${maxPrice})` },
-        { status: 400 }
-      )
-    }
-
-    // Validação: promoção só se autorizada; preço promocional >= mínimo permitido
-    let finalPromoPrice: number | null = null
-    if (promoPrice != null && promoPrice > 0) {
-      if (!profile.allowPromos) {
-        return NextResponse.json(
-          { success: false, error: 'Você não autorizou promoções no preço da sessão base. Ative em "Preço oficial da sessão base".' },
-          { status: 400 }
-        )
-      }
-      const minPromo = profile.minPromoPrice != null ? Number(profile.minPromoPrice) : null
-      if (minPromo != null && promoPrice < minPromo) {
-        return NextResponse.json(
-          { success: false, error: `O preço promocional não pode ser menor que o mínimo permitido (${minPromo})` },
-          { status: 400 }
-        )
-      }
-      finalPromoPrice = promoPrice
-    }
+    const finalPromoPrice: number | null =
+      promoPrice != null && promoPrice > 0 ? promoPrice : null
 
     const service = await prisma.therapistService.create({
       data: {
@@ -161,6 +132,7 @@ export async function POST(
         promoPrice: service.promoPrice ? Number(service.promoPrice) : null,
         currency: service.currency,
         modality: service.modality,
+        active: service.active,
       },
     })
   } catch (error) {

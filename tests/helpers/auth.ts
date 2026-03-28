@@ -15,6 +15,7 @@ export const TEST_PATIENT = {
 /** Rota real do app (o enunciado citava /profile). */
 export const ROUTES = {
   therapistProfile: '/dashboard/terapeuta/perfil',
+  therapistTerapias: '/dashboard/terapeuta/terapias',
   therapistAgenda: '/dashboard/terapeuta/agenda',
   patientSearch: '/dashboard/paciente/buscar',
   login: '/login',

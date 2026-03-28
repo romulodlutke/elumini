@@ -5,7 +5,8 @@ import {
   Users, Calendar, Heart, Shield, ChevronRight
 } from 'lucide-react'
 
-import { THERAPY_HIGHLIGHTS } from '@/constants/therapies'
+import { prisma } from '@/lib/prisma'
+import { SEED_THERAPY_TYPE_NAMES } from '@/constants/therapies'
 
 const STATS = [
   { value: '500+', label: 'Terapeutas certificados' },
@@ -62,7 +63,24 @@ const TESTIMONIALS = [
   },
 ]
 
-export default function HomePage() {
+async function landingTherapyNames(): Promise<string[]> {
+  try {
+    const rows = await prisma.therapyType.findMany({
+      where: { active: true },
+      orderBy: [{ sortOrder: 'asc' }, { name: 'asc' }],
+      select: { name: true },
+      take: 30,
+    })
+    if (rows.length > 0) return rows.map((r) => r.name)
+  } catch {
+    /* tabela ainda não migrada ou DB indisponível no build */
+  }
+  return [...SEED_THERAPY_TYPE_NAMES]
+}
+
+export default async function HomePage() {
+  const therapyHighlightNames = await landingTherapyNames()
+
   return (
     <div className="min-h-screen bg-[#FAFAF9] text-slate-900">
 
@@ -241,7 +259,7 @@ export default function HomePage() {
             <p className="text-slate-500 text-sm">Mais de 30 modalidades disponíveis na plataforma.</p>
           </div>
           <div className="flex flex-wrap justify-center gap-2.5">
-            {THERAPY_HIGHLIGHTS.map((name) => (
+            {therapyHighlightNames.map((name) => (
               <Link
                 key={name}
                 href={`/register?therapy=${encodeURIComponent(name)}`}

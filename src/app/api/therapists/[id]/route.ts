@@ -45,12 +45,6 @@ const updateSchema = z.object({
   instagram: z.string().max(150).optional().nullable(),
   facebook: z.string().max(250).optional().nullable(),
   websiteUrl: z.string().url().optional().nullable().or(z.literal('')),
-  // Preço oficial da sessão base
-  minSessionPrice: z.preprocess(preprocessNullableNumber, z.number().min(0).optional().nullable()),
-  maxSessionPrice: z.preprocess(preprocessNullableNumber, z.number().min(0).optional().nullable()),
-  baseCurrency: z.string().max(10).optional().nullable(),
-  allowPromos: z.boolean().optional(),
-  minPromoPrice: z.preprocess(preprocessNullableNumber, z.number().min(0).optional().nullable()),
   timezone: z.string().max(80).optional().nullable(),
   wantCampaigns: z.boolean().optional(),
   allowAutoScheduling: z.boolean().optional(),
@@ -115,11 +109,6 @@ export async function PATCH(
     if (profileData.instagram !== undefined) updatePayload.instagram = profileData.instagram || null
     if (profileData.facebook !== undefined) updatePayload.facebook = profileData.facebook || null
     if (profileData.websiteUrl !== undefined) updatePayload.websiteUrl = profileData.websiteUrl === '' ? null : profileData.websiteUrl
-    if (profileData.minSessionPrice !== undefined) updatePayload.minSessionPrice = profileData.minSessionPrice
-    if (profileData.maxSessionPrice !== undefined) updatePayload.maxSessionPrice = profileData.maxSessionPrice
-    if (profileData.baseCurrency !== undefined) updatePayload.baseCurrency = profileData.baseCurrency || null
-    if (profileData.allowPromos !== undefined) updatePayload.allowPromos = profileData.allowPromos
-    if (profileData.minPromoPrice !== undefined) updatePayload.minPromoPrice = profileData.minPromoPrice
     if (profileData.timezone !== undefined) updatePayload.timezone = profileData.timezone || null
     if (profileData.wantCampaigns !== undefined) updatePayload.wantCampaigns = profileData.wantCampaigns
     if (profileData.allowAutoScheduling !== undefined) updatePayload.allowAutoScheduling = profileData.allowAutoScheduling

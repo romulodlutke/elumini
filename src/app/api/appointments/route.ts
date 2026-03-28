@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma'
 import { getSessionFromRequest } from '@/lib/auth'
 import { z } from 'zod'
 import { calculateCommission } from '@/lib/utils'
+import { effectiveServiceCharge } from '@/lib/therapist-pricing'
 import { sendWhatsAppMessage } from '@/services/whatsappService'
 
 const createSchema = z.object({
@@ -137,7 +138,7 @@ export async function POST(request: NextRequest) {
       where: { id: therapistProfileId, approved: true, user: { active: true } },
       include: {
         availability: { where: { active: true } },
-        services: { where: { active: true } },
+        services: { where: { active: true }, select: { id: true, price: true, promoPrice: true, durationMinutes: true, active: true } },
       },
     })
 
@@ -145,13 +146,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: 'Terapeuta não encontrado ou não aprovado' }, { status: 404 })
     }
 
+    const activeServices = therapist.services.filter((s) => s.active)
+    if (activeServices.length > 0 && !serviceId) {
+      return NextResponse.json(
+        { success: false, error: 'Selecione o tipo de sessão (serviço) para agendar com este terapeuta.' },
+        { status: 400 }
+      )
+    }
+
     let price: number
     let durationMinutes: number
     let finalServiceId: string | null = null
 
-    const svc = serviceId ? therapist.services.find((s) => s.id === serviceId) : null
-    if (svc) {
-      price = Number(svc.price)
+    const svc = serviceId ? activeServices.find((s) => s.id === serviceId) : null
+    if (activeServices.length > 0) {
+      if (!svc) {
+        return NextResponse.json(
+          { success: false, error: 'Serviço inválido ou não disponível para este terapeuta.' },
+          { status: 400 }
+        )
+      }
+      price = effectiveServiceCharge({
+        price: Number(svc.price),
+        promoPrice: svc.promoPrice != null ? Number(svc.promoPrice) : null,
+      })
       durationMinutes = svc.durationMinutes
       finalServiceId = svc.id
     } else {

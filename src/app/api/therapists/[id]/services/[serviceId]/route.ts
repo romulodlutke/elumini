@@ -35,10 +35,6 @@ export async function PATCH(
         therapist: {
           select: {
             userId: true,
-            minSessionPrice: true,
-            maxSessionPrice: true,
-            allowPromos: true,
-            minPromoPrice: true,
           },
         },
       },
@@ -62,43 +58,7 @@ export async function PATCH(
       )
     }
 
-    const profile = service.therapist
     const updateData = { ...validated.data }
-
-    // Preço final (atual ou atualizado)
-    const finalPrice = updateData.price !== undefined ? updateData.price : Number(service.price)
-
-    // Validação: preço dentro da faixa oficial
-    const minPrice = profile.minSessionPrice != null ? Number(profile.minSessionPrice) : null
-    const maxPrice = profile.maxSessionPrice != null ? Number(profile.maxSessionPrice) : null
-    if (minPrice != null && finalPrice < minPrice) {
-      return NextResponse.json(
-        { success: false, error: `O preço do serviço não pode ser menor que o preço mínimo da sessão (${minPrice})` },
-        { status: 400 }
-      )
-    }
-    if (maxPrice != null && finalPrice > maxPrice) {
-      return NextResponse.json(
-        { success: false, error: `O preço do serviço não pode ser maior que o preço máximo da sessão (${maxPrice})` },
-        { status: 400 }
-      )
-    }
-
-    // Promoção: só permitir se autorizada; preço promocional >= mínimo
-    const newPromoPrice = updateData.promoPrice !== undefined ? updateData.promoPrice : (service.promoPrice ? Number(service.promoPrice) : null)
-    if (newPromoPrice != null && newPromoPrice > 0) {
-      if (!profile.allowPromos) {
-        updateData.promoPrice = null
-      } else {
-        const minPromo = profile.minPromoPrice != null ? Number(profile.minPromoPrice) : null
-        if (minPromo != null && newPromoPrice < minPromo) {
-          return NextResponse.json(
-            { success: false, error: `O preço promocional não pode ser menor que o mínimo permitido (${minPromo})` },
-            { status: 400 }
-          )
-        }
-      }
-    }
 
     const updated = await prisma.therapistService.update({
       where: { id: params.serviceId },

@@ -1,5 +1,6 @@
 import { PrismaClient, Role, Modality, AppointmentStatus, Gender } from '@prisma/client'
 import bcrypt from 'bcryptjs'
+import { SEED_THERAPY_TYPE_NAMES } from '../src/constants/therapies'
 
 const prisma = new PrismaClient()
 
@@ -15,6 +16,7 @@ async function main() {
   await prisma.patientProfile.deleteMany()
   await prisma.refreshToken.deleteMany()
   await prisma.user.deleteMany()
+  await prisma.therapyType.deleteMany()
   await prisma.platformConfig.deleteMany()
 
   // ==========================================
@@ -28,6 +30,33 @@ async function main() {
     },
   })
   console.log('Platform config criada:', config.id)
+
+  // ==========================================
+  // TIPOS DE TERAPIA (catálogo global) — lista em src/constants/therapies.ts
+  // ==========================================
+  const slugify = (raw: string) =>
+    raw
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .toLowerCase()
+      .trim()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-+|-+$/g, '') || 'terapia'
+
+  let sortOrder = 0
+  for (const name of SEED_THERAPY_TYPE_NAMES) {
+    const base = slugify(name)
+    let slug = base
+    let n = 0
+    while (await prisma.therapyType.findUnique({ where: { slug } })) {
+      n += 1
+      slug = `${base}-${n}`
+    }
+    await prisma.therapyType.create({
+      data: { name, slug, sortOrder: sortOrder++, active: true },
+    })
+  }
+  console.log('Tipos de terapia (seed):', SEED_THERAPY_TYPE_NAMES.length)
 
   // ==========================================
   // USUÁRIO ADMIN

@@ -87,6 +87,22 @@ model RefreshToken {
 }
 
 // ==========================================
+// TIPOS DE TERAPIA (catálogo global — admin)
+// ==========================================
+
+model TherapyType {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  slug      String   @unique
+  active    Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("therapy_types")
+}
+
+// ==========================================
 // PERFIL DO TERAPEUTA
 // ==========================================
 
@@ -121,12 +137,12 @@ model TherapistProfile {
   greenApiInstanceId    String? // Green API instance ID
   greenApiToken         String? // Green API token
   sessionsPerMonthGoal  Int?    // objetivo: quantidade de sessões por mês
-  // Preço oficial da sessão base
-  minSessionPrice       Decimal? @db.Decimal(10, 2) // Preço mínimo da sessão
-  maxSessionPrice       Decimal? @db.Decimal(10, 2) // Preço máximo da sessão
-  baseCurrency          String?  @default("BRL")    // Moeda
-  allowPromos           Boolean  @default(false)    // Autoriza promoções
-  minPromoPrice         Decimal? @db.Decimal(10, 2) // Preço mínimo permitido em promoções
+  // Legado (sem UI): faixa de preço e regras de promoção antigas; colunas mantidas no banco
+  minSessionPrice       Decimal? @db.Decimal(10, 2)
+  maxSessionPrice       Decimal? @db.Decimal(10, 2)
+  baseCurrency          String?  @default("BRL")
+  allowPromos           Boolean  @default(false)
+  minPromoPrice         Decimal? @db.Decimal(10, 2)
   timezone               String?  @default("America/Sao_Paulo") // Fuso horário para disponibilidade/agendamento
   wantCampaigns          Boolean  @default(false)  // Deseja aparecer em campanhas publicitárias
   allowAutoScheduling    Boolean  @default(false)  // Autoriza que o sistema agende automaticamente

@@ -18,6 +18,8 @@ interface TherapistService {
   description: string | null
   durationMinutes: number
   price: number
+  promoPrice?: number | null
+  displayPrice?: number
   currency: string
   modality: string
 }
@@ -27,6 +29,7 @@ interface TherapistPublic {
   bio: string | null
   therapies: string[]
   price: number
+  profilePrice?: number
   modality: string
   location: string | null
   city: string | null
@@ -223,7 +226,7 @@ export default function TerapeutaPerfilPublicoPage() {
                           )}
                         </div>
                         <p className="font-bold text-slate-900 flex-shrink-0">
-                          {formatCurrency(svc.price, svc.currency)}
+                          {formatCurrency(svc.displayPrice ?? svc.price, svc.currency)}
                         </p>
                       </div>
                     </div>

@@ -2,6 +2,7 @@ export const dynamic = 'force-dynamic'
 
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/prisma'
+import { effectiveServiceCharge, listingPriceFromServices } from '@/lib/therapist-pricing'
 
 /**
  * GET /api/therapists/[id]/public
@@ -29,7 +30,17 @@ export async function GET(
         },
         services: {
           where: { active: true },
-          select: { id: true, name: true, description: true, problemsHelped: true, durationMinutes: true, price: true, currency: true, modality: true },
+          select: {
+            id: true,
+            name: true,
+            description: true,
+            problemsHelped: true,
+            durationMinutes: true,
+            price: true,
+            promoPrice: true,
+            currency: true,
+            modality: true,
+          },
         },
         targetAudience: {
           select: { specialNeeds: true },
@@ -45,11 +56,36 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Perfil não encontrado' }, { status: 404 })
     }
 
+    const profilePrice = Number(profile.price)
+    const servicesPayload = profile.services.map((s) => ({
+      id: s.id,
+      name: s.name,
+      description: s.description,
+      problemsHelped: s.problemsHelped,
+      durationMinutes: s.durationMinutes,
+      price: Number(s.price),
+      promoPrice: s.promoPrice ? Number(s.promoPrice) : null,
+      displayPrice: effectiveServiceCharge({
+        price: Number(s.price),
+        promoPrice: s.promoPrice != null ? Number(s.promoPrice) : null,
+      }),
+      currency: s.currency,
+      modality: s.modality,
+    }))
+    const listingPrice = listingPriceFromServices(
+      profile.services.map((s) => ({
+        price: Number(s.price),
+        promoPrice: s.promoPrice != null ? Number(s.promoPrice) : null,
+      })),
+      profilePrice
+    )
+
     const data = {
       id: profile.id,
       bio: profile.bio,
       therapies: profile.therapies,
-      price: Number(profile.price),
+      price: listingPrice,
+      profilePrice,
       modality: profile.modality,
       location: profile.location,
       city: profile.city,
@@ -69,16 +105,7 @@ export async function GET(
       certifications: profile.certifications,
       user: profile.user,
       availability: profile.availability,
-      services: profile.services.map((s) => ({
-        id: s.id,
-        name: s.name,
-        description: s.description,
-        problemsHelped: s.problemsHelped,
-        durationMinutes: s.durationMinutes,
-        price: Number(s.price),
-        currency: s.currency,
-        modality: s.modality,
-      })),
+      services: servicesPayload,
       publicTargetDescription: profile.targetAudience?.specialNeeds ?? null,
       certificates: profile.certificates,
     }

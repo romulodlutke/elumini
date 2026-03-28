@@ -111,6 +111,15 @@ export default async function AdminDashboardPage() {
           />
         </div>
 
+        <div className="flex flex-wrap gap-3">
+          <Link
+            href="/dashboard/admin/therapies"
+            className="text-sm font-medium text-green-700 hover:text-green-800 bg-green-50 border border-green-200 rounded-xl px-4 py-2.5"
+          >
+            Gerenciar tipos de terapia →
+          </Link>
+        </div>
+
         {/* Últimos agendamentos */}
         <div className="bg-white rounded-xl border border-slate-200 shadow-sm">
           <div className="flex items-center justify-between p-5 border-b border-slate-100">
