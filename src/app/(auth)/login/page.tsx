@@ -54,27 +54,24 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex" style={{ backgroundColor: '#F6F3EE' }}>
-      {/* Painel esquerdo decorativo — visível só em md+ */}
-      <div className="hidden md:flex flex-col justify-between w-2/5 bg-brand-500 p-12">
+    <div className="min-h-screen flex bg-[#FAFAF9]">
+      {/* Painel esquerdo — visível só em md+ */}
+      <div className="hidden md:flex flex-col justify-between w-5/12 bg-green-600 p-12">
         <Link href="/" className="flex items-center gap-2.5">
-          <div className="w-8 h-8 bg-white/20 rounded-xl flex items-center justify-center">
+          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
             <Leaf size={15} className="text-white" />
           </div>
-          <span className="font-bold text-white text-lg">EALumini</span>
+          <span className="font-semibold text-white text-lg">EALumini</span>
         </Link>
         <div>
-          <h2
-            className="display-heading text-white mb-4"
-            style={{ fontSize: '3.5rem', lineHeight: 0.95 }}
-          >
-            Cuide da sua mente. Cuide da sua alma.
+          <h2 className="text-4xl font-semibold text-white mb-4 leading-tight tracking-tight">
+            Cuide da sua mente.<br />Cuide da sua alma.
           </h2>
-          <p className="text-brand-100/80 text-sm leading-relaxed">
+          <p className="text-green-100/80 text-sm leading-relaxed">
             Mais de 500 terapeutas certificados esperando para te atender.
           </p>
         </div>
-        <p className="text-brand-100/40 text-xs">© 2025 EALumini</p>
+        <p className="text-green-100/40 text-xs">© 2025 EALumini</p>
       </div>
 
       {/* Formulário */}
@@ -82,17 +79,17 @@ export default function LoginPage() {
         {/* Logo mobile */}
         <div className="md:hidden mb-8 text-center">
           <Link href="/" className="inline-flex items-center gap-2.5">
-            <div className="w-9 h-9 bg-brand-500 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-green-600 rounded-lg flex items-center justify-center">
               <Leaf size={16} className="text-white" />
             </div>
-            <span className="font-bold text-sand-900 text-xl">EALumini</span>
+            <span className="font-semibold text-slate-900 text-xl">EALumini</span>
           </Link>
         </div>
 
         <div className="w-full max-w-sm">
           <div className="mb-8">
-            <h1 className="text-2xl font-bold text-sand-900 mb-1">Bem-vindo de volta</h1>
-            <p className="text-sand-500 text-sm">Entre com suas credenciais para continuar</p>
+            <h1 className="text-2xl font-semibold text-slate-900 tracking-tight mb-1">Bem-vindo de volta</h1>
+            <p className="text-slate-500 text-sm">Entre com suas credenciais para continuar</p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -114,7 +111,7 @@ export default function LoginPage() {
             />
 
             <div className="flex justify-end">
-              <Link href="/forgot-password" className="text-xs text-brand-500 hover:text-brand-600 font-semibold transition-colors">
+              <Link href="/forgot-password" className="text-xs text-green-600 hover:text-green-700 font-medium transition-colors">
                 Esqueceu a senha?
               </Link>
             </div>
@@ -125,25 +122,25 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          <p className="text-center text-sm text-sand-500 mt-6">
+          <p className="text-center text-sm text-slate-500 mt-6">
             Não tem conta?{' '}
-            <Link href="/register" className="text-brand-500 hover:text-brand-600 font-semibold transition-colors">
+            <Link href="/register" className="text-green-600 hover:text-green-700 font-semibold transition-colors">
               Cadastre-se grátis
             </Link>
           </p>
 
           {/* Credenciais de teste */}
-          <div className="mt-8 p-4 bg-white border border-sand-200 rounded-2xl shadow-card">
-            <p className="text-[10px] font-bold text-sand-500 uppercase tracking-widest mb-2.5">Contas de teste</p>
-            <div className="space-y-1.5">
+          <div className="mt-8 p-4 bg-white border border-slate-200 rounded-xl shadow-sm">
+            <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mb-3">Contas de teste</p>
+            <div className="space-y-2">
               {[
-                { role: 'Admin',     email: 'admin@ealumini.com',           pass: 'Admin@123' },
-                { role: 'Terapeuta', email: 'ana.ribeiro@ealumini.com',      pass: 'Terapeuta@123' },
-                { role: 'Paciente',  email: 'marcos.pereira@email.com',          pass: 'Paciente@123' },
+                { role: 'Admin',     email: 'admin@ealumini.com',       pass: 'Admin@123' },
+                { role: 'Terapeuta', email: 'ana.ribeiro@ealumini.com',  pass: 'Terapeuta@123' },
+                { role: 'Paciente',  email: 'marcos.pereira@email.com',  pass: 'Paciente@123' },
               ].map((c) => (
                 <div key={c.role} className="flex items-center justify-between text-xs">
-                  <span className="font-semibold text-sand-700">{c.role}</span>
-                  <span className="text-sand-400 font-mono text-[11px]">{c.pass}</span>
+                  <span className="font-medium text-slate-700">{c.role}</span>
+                  <span className="text-slate-400 font-mono text-[11px]">{c.pass}</span>
                 </div>
               ))}
             </div>

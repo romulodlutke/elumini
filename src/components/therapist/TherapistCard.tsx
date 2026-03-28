@@ -39,41 +39,41 @@ export function TherapistCard({ therapist, onBook, onView, variant = 'grid' }: T
 
   if (variant === 'list') {
     return (
-      <div className="group bg-white rounded-2xl border border-sand-200 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 p-5">
+      <div className="group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 p-5">
         <div className="flex gap-4 items-center">
           <div className="relative flex-shrink-0">
             <Image
               src={avatarUrl}
               alt={displayName}
-              width={64}
-              height={64}
-              className="rounded-full object-cover w-16 h-16 border-2 border-sand-200"
+              width={56}
+              height={56}
+              className="rounded-full object-cover w-14 h-14 border-2 border-slate-100"
             />
             {therapist.featured && (
-              <span className="absolute -top-1 -right-1 w-5 h-5 bg-amber-400 rounded-full flex items-center justify-center">
-                <Star size={9} className="fill-white text-white" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 bg-amber-400 rounded-full flex items-center justify-center">
+                <Star size={8} className="fill-white text-white" />
               </span>
             )}
           </div>
           <div className="flex-1 min-w-0">
             <div className="flex items-start justify-between gap-2">
               <div>
-                <h3 className="font-semibold text-sand-900 truncate text-sm">{displayName}</h3>
-                <p className="text-xs text-brand-500 font-medium mt-0.5">{therapist.therapies[0]}</p>
+                <h3 className="font-semibold text-slate-900 truncate text-sm">{displayName}</h3>
+                <p className="text-xs text-green-600 font-medium mt-0.5">{therapist.therapies[0]}</p>
               </div>
               <div className="text-right flex-shrink-0">
-                <p className="font-bold text-sand-900 text-sm">{formatCurrency(Number(therapist.price))}</p>
-                <p className="text-xs text-sand-400">por sessão</p>
+                <p className="font-semibold text-slate-900 text-sm">{formatCurrency(Number(therapist.price))}</p>
+                <p className="text-xs text-slate-400">por sessão</p>
               </div>
             </div>
             <div className="flex items-center gap-3 mt-2 flex-wrap">
               <div className="flex items-center gap-1">
-                <Star size={12} className="fill-amber-400 text-amber-400" />
-                <span className="text-xs font-semibold text-sand-800">{Number(therapist.rating).toFixed(1)}</span>
-                <span className="text-xs text-sand-400">({therapist.reviewCount})</span>
+                <Star size={11} className="fill-amber-400 text-amber-400" />
+                <span className="text-xs font-semibold text-slate-800">{Number(therapist.rating).toFixed(1)}</span>
+                <span className="text-xs text-slate-400">({therapist.reviewCount})</span>
               </div>
               {therapist.city && (
-                <span className="flex items-center gap-1 text-xs text-sand-400">
+                <span className="flex items-center gap-1 text-xs text-slate-400">
                   <MapPin size={10} />
                   {therapist.city}
                 </span>
@@ -91,56 +91,52 @@ export function TherapistCard({ therapist, onBook, onView, variant = 'grid' }: T
 
   // Grid card
   return (
-    <div className="group bg-white rounded-2xl border border-sand-200 shadow-card hover:shadow-card-hover hover:-translate-y-1 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer">
+    <div className="group bg-white rounded-xl border border-slate-200 shadow-sm hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex flex-col cursor-pointer">
 
-      {/* Topo com gradiente areia */}
-      <div className="relative bg-gradient-to-b from-sand-100 to-sand-50 pt-6 pb-4 px-6 flex flex-col items-center text-center border-b border-sand-100">
+      {/* Topo */}
+      <div className="relative bg-slate-50 pt-6 pb-4 px-5 flex flex-col items-center text-center border-b border-slate-100">
         {therapist.featured && (
-          <div className="absolute top-3 right-3 bg-amber-400 text-white text-[10px] font-bold px-2.5 py-0.5 rounded-pill flex items-center gap-1 tracking-wide">
-            <Star size={9} className="fill-white" />
+          <div className="absolute top-3 right-3 bg-amber-400 text-white text-[10px] font-bold px-2 py-0.5 rounded-lg flex items-center gap-1">
+            <Star size={8} className="fill-white" />
             Destaque
           </div>
         )}
-        <div className="relative">
-          <Image
-            src={avatarUrl}
-            alt={displayName}
-            width={80}
-            height={80}
-            className="rounded-full object-cover w-20 h-20 border-4 border-white shadow-card"
-          />
-        </div>
-        <h3 className="font-semibold text-sand-900 mt-3 text-sm leading-snug">{displayName}</h3>
-        <p className="text-xs text-brand-500 font-semibold mt-0.5 uppercase tracking-wider">{therapist.therapies[0]}</p>
-        {/* Estrelas */}
+        <Image
+          src={avatarUrl}
+          alt={displayName}
+          width={72}
+          height={72}
+          className="rounded-full object-cover w-[72px] h-[72px] border-4 border-white shadow-sm"
+        />
+        <h3 className="font-semibold text-slate-900 mt-3 text-sm leading-snug">{displayName}</h3>
+        <p className="text-xs text-green-600 font-medium mt-0.5">{therapist.therapies[0]}</p>
         <div className="flex items-center gap-1.5 mt-2">
           <div className="flex gap-0.5">
             {Array.from({ length: 5 }).map((_, i) => (
               <Star
                 key={i}
-                size={11}
-                className={i < Math.round(therapist.rating) ? 'fill-amber-400 text-amber-400' : 'text-sand-300'}
+                size={10}
+                className={i < Math.round(therapist.rating) ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
               />
             ))}
           </div>
-          <span className="text-xs font-semibold text-sand-700">{Number(therapist.rating).toFixed(1)}</span>
-          <span className="text-[11px] text-sand-400">({therapist.reviewCount})</span>
+          <span className="text-xs font-semibold text-slate-700">{Number(therapist.rating).toFixed(1)}</span>
+          <span className="text-[11px] text-slate-400">({therapist.reviewCount})</span>
         </div>
       </div>
 
       {/* Corpo */}
       <div className="p-4 flex-1 flex flex-col gap-3">
-        {/* Modalidade + local */}
-        <div className="flex items-center gap-2.5 text-xs text-sand-500">
+        <div className="flex items-center gap-2.5 text-xs text-slate-500">
           {isOnline && (
             <span className="flex items-center gap-1">
-              <Video size={11} className="text-brand-500" />
+              <Video size={11} className="text-green-600" />
               Online
             </span>
           )}
           {isPresencial && (
             <span className="flex items-center gap-1">
-              <Users size={11} className="text-brand-500" />
+              <Users size={11} className="text-green-600" />
               Presencial
             </span>
           )}
@@ -152,7 +148,6 @@ export function TherapistCard({ therapist, onBook, onView, variant = 'grid' }: T
           )}
         </div>
 
-        {/* Tags */}
         <div className="flex flex-wrap gap-1.5 flex-1">
           {therapist.therapies.slice(0, 3).map((t) => (
             <Badge key={t} variant="default" size="sm">{t}</Badge>
@@ -162,22 +157,20 @@ export function TherapistCard({ therapist, onBook, onView, variant = 'grid' }: T
           )}
         </div>
 
-        {/* Exp */}
         {therapist.yearsExp && (
-          <div className="flex items-center gap-1 text-[11px] text-sand-400">
+          <div className="flex items-center gap-1 text-[11px] text-slate-400">
             <Clock size={10} />
             {therapist.yearsExp} anos de experiência
           </div>
         )}
 
-        {/* Preço + CTA */}
-        <div className="border-t border-sand-100 pt-3 mt-auto">
+        <div className="border-t border-slate-100 pt-3 mt-auto">
           <div className="flex items-end justify-between mb-3">
             <div>
-              <p className="text-[10px] text-sand-400 uppercase tracking-wider">A partir de</p>
-              <p className="text-xl font-bold text-sand-900">{formatCurrency(Number(therapist.price))}</p>
+              <p className="text-[10px] text-slate-400 uppercase tracking-wide">A partir de</p>
+              <p className="text-xl font-semibold text-slate-900 tracking-tight">{formatCurrency(Number(therapist.price))}</p>
             </div>
-            <p className="text-[11px] text-sand-400 mb-1">/ sessão</p>
+            <p className="text-[11px] text-slate-400 mb-0.5">/ sessão</p>
           </div>
           <div className="flex gap-2">
             {onView && (

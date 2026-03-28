@@ -38,7 +38,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
      *        ficar tapado pela barra. Largura total em coluna única.
      * - md+: Sidebar volta para coluna lateral; main ocupa o resto horizontal.
      */
-    <div className="flex h-screen overflow-hidden bg-sand-100">
+    <div className="flex h-screen overflow-hidden bg-[#FAFAF9]">
       <Sidebar
         userName={userName || 'Usuário'}
         userRole={userRole}

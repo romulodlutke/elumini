@@ -37,25 +37,25 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: '#F6F3EE' }}>
+    <div className="min-h-screen flex items-center justify-center px-4 bg-[#FAFAF9]">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
-            <div className="w-9 h-9 bg-brand-500 rounded-xl flex items-center justify-center">
+            <div className="w-9 h-9 bg-green-600 rounded-lg flex items-center justify-center">
               <Leaf size={16} className="text-white" />
             </div>
-            <span className="font-bold text-sand-900 text-xl">EALumini</span>
+            <span className="font-semibold text-slate-900 text-xl">EALumini</span>
           </Link>
         </div>
 
-        <div className="bg-white rounded-2xl border border-sand-200 shadow-card p-7">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-7">
           {sent ? (
             <div className="text-center py-4">
-              <div className="w-14 h-14 bg-brand-500/10 rounded-full flex items-center justify-center mx-auto mb-4">
-                <CheckCircle2 size={28} className="text-brand-500" />
+              <div className="w-14 h-14 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 size={28} className="text-green-600" />
               </div>
-              <h2 className="text-xl font-bold text-sand-900 mb-2">E-mail enviado!</h2>
-              <p className="text-sand-500 text-sm mb-6 leading-relaxed">
+              <h2 className="text-xl font-semibold text-slate-900 mb-2">E-mail enviado!</h2>
+              <p className="text-slate-500 text-sm mb-6 leading-relaxed">
                 Se este e-mail estiver cadastrado, você receberá as instruções para redefinir sua senha em breve.
               </p>
               <Link href="/login">
@@ -68,8 +68,8 @@ export default function ForgotPasswordPage() {
           ) : (
             <>
               <div className="mb-6">
-                <h2 className="text-xl font-bold text-sand-900 mb-1">Esqueceu a senha?</h2>
-                <p className="text-sand-500 text-sm">Digite seu e-mail para receber as instruções.</p>
+                <h2 className="text-xl font-semibold text-slate-900 mb-1">Esqueceu a senha?</h2>
+                <p className="text-slate-500 text-sm leading-relaxed">Digite seu e-mail para receber as instruções.</p>
               </div>
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                 <Input
@@ -85,7 +85,7 @@ export default function ForgotPasswordPage() {
                 </Button>
               </form>
               <div className="mt-5 text-center">
-                <Link href="/login" className="text-sm text-sand-400 hover:text-sand-700 flex items-center justify-center gap-1.5 transition-colors">
+                <Link href="/login" className="text-sm text-slate-400 hover:text-slate-700 flex items-center justify-center gap-1.5 transition-colors">
                   <ArrowLeft size={13} />
                   Voltar ao login
                 </Link>

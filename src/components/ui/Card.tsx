@@ -18,8 +18,8 @@ export function Card({ children, className, hover, padding = 'md' }: CardProps) 
   return (
     <div
       className={cn(
-        'bg-white rounded-2xl border border-surface-200 shadow-card',
-        hover && 'transition-all duration-300 hover:shadow-card-hover hover:-translate-y-0.5 cursor-pointer',
+        'bg-white rounded-xl border border-slate-200 shadow-sm',
+        hover && 'transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 cursor-pointer',
         paddingStyles[padding],
         className
       )}
@@ -34,11 +34,11 @@ export function CardHeader({ children, className }: { children: React.ReactNode;
 }
 
 export function CardTitle({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <h3 className={cn('text-lg font-semibold text-slate-900', className)}>{children}</h3>
+  return <h3 className={cn('text-base font-semibold text-slate-900', className)}>{children}</h3>
 }
 
 export function CardDescription({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <p className={cn('text-sm text-slate-500 mt-1', className)}>{children}</p>
+  return <p className={cn('text-sm text-slate-500 mt-1 leading-relaxed', className)}>{children}</p>
 }
 
 export function CardContent({ children, className }: { children: React.ReactNode; className?: string }) {
@@ -46,5 +46,5 @@ export function CardContent({ children, className }: { children: React.ReactNode
 }
 
 export function CardFooter({ children, className }: { children: React.ReactNode; className?: string }) {
-  return <div className={cn('mt-4 pt-4 border-t border-surface-100', className)}>{children}</div>
+  return <div className={cn('mt-4 pt-4 border-t border-slate-100', className)}>{children}</div>
 }

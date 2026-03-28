@@ -124,7 +124,7 @@ export default function BuscarTerapeutasPage() {
       <div className="flex h-[calc(100vh-56px)]">
 
         {/* ── Filtros — coluna lateral no desktop ───────────────────── */}
-        <div className="hidden md:block w-72 flex-shrink-0 p-4 overflow-y-auto border-r border-sand-200 bg-sand-50">
+        <div className="hidden md:block w-72 flex-shrink-0 p-4 overflow-y-auto border-r border-slate-200 bg-slate-50">
           <SearchFilters
             values={filters}
             onChange={setFilters}
@@ -143,11 +143,11 @@ export default function BuscarTerapeutasPage() {
             {/* Painel deslizante da esquerda */}
             <div className="md:hidden fixed inset-y-0 left-0 z-50 w-[85vw] max-w-sm bg-white shadow-2xl animate-slide-up flex flex-col">
               {/* Cabeçalho do drawer */}
-              <div className="flex items-center justify-between px-4 py-3 border-b border-sand-200">
-                <span className="font-semibold text-sand-900 text-sm">Filtros</span>
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200">
+                <span className="font-semibold text-slate-900 text-sm">Filtros</span>
                 <button
                   onClick={() => setFilterOpen(false)}
-                  className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:bg-sand-100 text-sand-400 hover:text-sand-700 transition-colors"
+                  className="p-2.5 min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors"
                 >
                   <X size={18} />
                 </button>
@@ -160,11 +160,11 @@ export default function BuscarTerapeutasPage() {
                 />
               </div>
               {/* Botão aplicar */}
-              <div className="px-4 py-3 border-t border-sand-200 pb-safe">
+              <div className="px-4 py-3 border-t border-slate-200 pb-safe">
                 <button
                   onClick={() => setFilterOpen(false)}
-                  className="w-full min-h-[44px] bg-brand-500 text-white font-semibold text-sm rounded-pill
-                             flex items-center justify-center hover:bg-brand-600 transition-colors"
+                  className="w-full min-h-[44px] bg-green-600 text-white font-semibold text-sm rounded-lg
+                             flex items-center justify-center hover:bg-green-700 transition-colors"
                 >
                   Ver resultados
                 </button>
@@ -188,13 +188,13 @@ export default function BuscarTerapeutasPage() {
                   'md:hidden flex-shrink-0 flex items-center justify-center gap-1.5',
                   'min-h-[44px] min-w-[44px] px-3 rounded-xl border transition-colors text-sm font-medium',
                   activeFilterCount > 0
-                    ? 'border-brand-500 bg-brand-50 text-brand-600'
-                    : 'border-sand-300 bg-white text-sand-600 hover:bg-sand-50'
+                    ? 'border-green-600 bg-green-50 text-green-700'
+                    : 'border-slate-200 bg-white text-slate-600 hover:bg-slate-50'
                 )}
               >
                 <SlidersHorizontal size={16} />
                 {activeFilterCount > 0 && (
-                  <span className="w-4 h-4 bg-brand-500 text-white text-[10px] rounded-full flex items-center justify-center font-bold leading-none">
+                  <span className="w-4 h-4 bg-green-600 text-white text-[10px] rounded-full flex items-center justify-center font-bold leading-none">
                     {activeFilterCount}
                   </span>
                 )}
@@ -211,13 +211,13 @@ export default function BuscarTerapeutasPage() {
               </div>
 
               {/* Toggle grid / list */}
-              <div className="flex gap-1 border border-sand-200 bg-white rounded-xl p-1 flex-shrink-0">
+              <div className="flex gap-1 border border-slate-200 bg-white rounded-lg p-1 flex-shrink-0">
                 <button
                   onClick={() => setViewMode('grid')}
                   aria-label="Visualização em grade"
                   className={cn(
                     'p-2 min-h-[36px] min-w-[36px] rounded-lg transition-colors',
-                    viewMode === 'grid' ? 'bg-brand-50 text-brand-600' : 'text-sand-400 hover:text-sand-600'
+                    viewMode === 'grid' ? 'bg-green-50 text-green-700' : 'text-slate-400 hover:text-slate-600'
                   )}
                 >
                   <LayoutGrid size={16} />
@@ -227,7 +227,7 @@ export default function BuscarTerapeutasPage() {
                   aria-label="Visualização em lista"
                   className={cn(
                     'p-2 min-h-[36px] min-w-[36px] rounded-lg transition-colors',
-                    viewMode === 'list' ? 'bg-brand-50 text-brand-600' : 'text-sand-400 hover:text-sand-600'
+                    viewMode === 'list' ? 'bg-green-50 text-green-700' : 'text-slate-400 hover:text-slate-600'
                   )}
                 >
                   <List size={16} />
@@ -237,7 +237,7 @@ export default function BuscarTerapeutasPage() {
 
             {/* Contagem de resultados */}
             {!loading && (
-              <p className="text-sm text-sand-500 mb-4">
+              <p className="text-sm text-slate-500 mb-4">
                 {total} terapeuta{total !== 1 ? 's' : ''} encontrado{total !== 1 ? 's' : ''}
               </p>
             )}
@@ -252,11 +252,11 @@ export default function BuscarTerapeutasPage() {
               </div>
             ) : therapists.length === 0 ? (
               <div className="text-center py-16">
-                <div className="w-16 h-16 bg-sand-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <Search size={24} className="text-sand-300" />
+                <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <Search size={24} className="text-slate-300" />
                 </div>
-                <h3 className="font-semibold text-sand-700 mb-1">Nenhum terapeuta encontrado</h3>
-                <p className="text-sm text-sand-400">Tente ajustar os filtros ou a busca</p>
+                <h3 className="font-semibold text-slate-700 mb-1">Nenhum terapeuta encontrado</h3>
+                <p className="text-sm text-slate-400">Tente ajustar os filtros ou a busca</p>
               </div>
             ) : (
               <div className={cn(
@@ -281,19 +281,19 @@ export default function BuscarTerapeutasPage() {
                 <button
                   onClick={() => setPage((p) => Math.max(1, p - 1))}
                   disabled={page === 1}
-                  className="px-4 min-h-[44px] rounded-xl border border-sand-200 text-sm font-medium
-                             disabled:opacity-40 hover:bg-sand-50 transition-colors"
+                  className="px-4 min-h-[44px] rounded-lg border border-slate-200 text-sm font-medium
+                             disabled:opacity-40 hover:bg-slate-50 transition-colors"
                 >
                   Anterior
                 </button>
-                <span className="px-4 min-h-[44px] flex items-center text-sm text-sand-600">
+                <span className="px-4 min-h-[44px] flex items-center text-sm text-slate-600">
                   {page} / {Math.ceil(total / 12)}
                 </span>
                 <button
                   onClick={() => setPage((p) => p + 1)}
                   disabled={page >= Math.ceil(total / 12)}
-                  className="px-4 min-h-[44px] rounded-xl border border-sand-200 text-sm font-medium
-                             disabled:opacity-40 hover:bg-sand-50 transition-colors"
+                  className="px-4 min-h-[44px] rounded-lg border border-slate-200 text-sm font-medium
+                             disabled:opacity-40 hover:bg-slate-50 transition-colors"
                 >
                   Próxima
                 </button>

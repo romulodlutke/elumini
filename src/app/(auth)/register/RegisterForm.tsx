@@ -80,47 +80,47 @@ export default function RegisterForm() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-12" style={{ backgroundColor: '#F6F3EE' }}>
+    <div className="min-h-screen flex items-center justify-center px-4 py-12 bg-[#FAFAF9]">
       <div className="w-full max-w-md">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-2.5 mb-6">
-            <div className="w-9 h-9 bg-brand-500 rounded-xl flex items-center justify-center">
+          <Link href="/" className="inline-flex items-center gap-2.5 mb-5">
+            <div className="w-9 h-9 bg-green-600 rounded-lg flex items-center justify-center">
               <Leaf size={16} className="text-white" />
             </div>
-            <span className="font-bold text-sand-900 text-xl">EALumini</span>
+            <span className="font-semibold text-slate-900 text-xl">EALumini</span>
           </Link>
-          <h1 className="text-2xl font-bold text-sand-900">Crie sua conta</h1>
-          <p className="text-sand-500 text-sm mt-1">Grátis, sem mensalidade</p>
+          <h1 className="text-2xl font-semibold text-slate-900 tracking-tight">Crie sua conta</h1>
+          <p className="text-slate-500 text-sm mt-1">Grátis, sem mensalidade</p>
         </div>
 
-        <div className="bg-white rounded-2xl border border-sand-200 shadow-card p-7">
+        <div className="bg-white rounded-xl border border-slate-200 shadow-sm p-7">
           {/* Seleção de tipo */}
           <div className="grid grid-cols-2 gap-3 mb-6">
             <button
               type="button"
               onClick={() => setValue('role', 'PACIENTE')}
               className={cn(
-                'flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 transition-all duration-200 text-sm font-semibold',
+                'flex flex-col items-center gap-2.5 p-4 rounded-xl border-2 transition-all duration-200 text-sm font-medium',
                 selectedRole === 'PACIENTE'
-                  ? 'border-brand-500 bg-brand-500/8 text-brand-600'
-                  : 'border-sand-200 text-sand-500 hover:border-sand-300 hover:bg-sand-50'
+                  ? 'border-green-600 bg-green-50 text-green-700'
+                  : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'
               )}
             >
-              <Heart size={22} className={selectedRole === 'PACIENTE' ? 'text-brand-500' : 'text-sand-300'} />
+              <Heart size={22} className={selectedRole === 'PACIENTE' ? 'text-green-600' : 'text-slate-300'} />
               Sou Paciente
             </button>
             <button
               type="button"
               onClick={() => setValue('role', 'TERAPEUTA')}
               className={cn(
-                'flex flex-col items-center gap-2.5 p-4 rounded-2xl border-2 transition-all duration-200 text-sm font-semibold',
+                'flex flex-col items-center gap-2.5 p-4 rounded-xl border-2 transition-all duration-200 text-sm font-medium',
                 selectedRole === 'TERAPEUTA'
-                  ? 'border-brand-500 bg-brand-500/8 text-brand-600'
-                  : 'border-sand-200 text-sand-500 hover:border-sand-300 hover:bg-sand-50'
+                  ? 'border-green-600 bg-green-50 text-green-700'
+                  : 'border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-slate-50'
               )}
             >
-              <Stethoscope size={22} className={selectedRole === 'TERAPEUTA' ? 'text-brand-500' : 'text-sand-300'} />
+              <Stethoscope size={22} className={selectedRole === 'TERAPEUTA' ? 'text-green-600' : 'text-slate-300'} />
               Sou Terapeuta
             </button>
           </div>
@@ -162,7 +162,7 @@ export default function RegisterForm() {
             />
 
             {selectedRole === 'TERAPEUTA' && (
-              <div className="p-3.5 bg-brand-500/8 border border-brand-500/20 rounded-xl text-xs text-brand-700">
+              <div className="p-3.5 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-700 leading-relaxed">
                 Após o cadastro, complete seu perfil. Ele passará por aprovação antes de aparecer na plataforma.
               </div>
             )}
@@ -172,17 +172,17 @@ export default function RegisterForm() {
             </Button>
           </form>
 
-          <p className="mt-4 text-xs text-center text-sand-400">
+          <p className="mt-4 text-xs text-center text-slate-400">
             Ao criar conta, você concorda com os{' '}
-            <Link href="/termos" className="text-brand-500 hover:underline">Termos de Uso</Link>
+            <Link href="/termos" className="text-green-600 hover:underline">Termos de Uso</Link>
             {' '}e{' '}
-            <Link href="/privacidade" className="text-brand-500 hover:underline">Privacidade</Link>.
+            <Link href="/privacidade" className="text-green-600 hover:underline">Privacidade</Link>.
           </p>
 
-          <div className="mt-5 pt-5 border-t border-sand-100 text-center">
-            <p className="text-sm text-sand-500">
+          <div className="mt-5 pt-5 border-t border-slate-100 text-center">
+            <p className="text-sm text-slate-500">
               Já tem conta?{' '}
-              <Link href="/login" className="text-brand-500 hover:text-brand-600 font-semibold transition-colors">
+              <Link href="/login" className="text-green-600 hover:text-green-700 font-semibold transition-colors">
                 Entrar
               </Link>
             </p>
