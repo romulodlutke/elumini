@@ -23,10 +23,13 @@ Marketplace SaaS de terapias holísticas — conectando pacientes a terapeutas c
 
 ## Deploy na Vercel
 
-1. **Variáveis de ambiente** (Project → Settings → Environment Variables), espelhando o `.env.example`: `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `NEXT_PUBLIC_APP_URL` (URL pública `https://seu-dominio.vercel.app` ou domínio próprio). Opcionais: WhatsApp (`ULTRAMSG_INSTANCE_ID`, `ULTRAMSG_TOKEN`, `THERAPIST_WHATSAPP_NUMBER`), SMTP.
-2. **Supabase Storage**: buckets `documents` e `avatars` (públicos, se usar URLs públicas).
-3. **Build**: `npm run build` (Prisma generate + Next build). Na Vercel, o `postinstall` já roda `prisma generate`.
-4. **Redeploy**: Dashboard → Deployments → **⋯** no último deploy → **Redeploy**, ou faça push em `main`.
+1. **Root Directory**: se o repositório tiver pasta pai, em *Settings → General* defina **Root Directory** como a pasta do app Next (ex.: `holosconnect`). Sem isso, a Vercel pode fazer deploy do projeto errado ou falhar o build.
+2. **Variáveis de ambiente** (Project → Settings → Environment Variables), **iguais ao `.env` local de produção**: `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `NEXT_PUBLIC_APP_URL` (**obrigatório**: URL exata do site em produção, `https://…vercel.app` ou domínio próprio — afeta links e cookies em alguns fluxos). Opcionais: WhatsApp (`ULTRAMSG_*`, `THERAPIST_WHATSAPP_NUMBER`), SMTP.
+3. **Variáveis `NEXT_PUBLIC_*`**: são “gravadas” no build. Se alterar no painel, faça **Redeploy** (ou *Clear build cache* + deploy) para o browser receber os valores novos.
+4. **JWT**: trocar `JWT_SECRET` / `JWT_REFRESH_SECRET` na Vercel **desloga todos** os utilizadores (tokens antigos deixam de ser válidos).
+5. **Supabase Storage**: buckets `documents` e `avatars` no mesmo projeto Supabase das URLs do `.env`.
+6. **Build**: `npm run build` localmente para validar. Na Vercel, `postinstall` roda `prisma generate`.
+7. **Produção ≠ local**: use o **mesmo** `DATABASE_URL` (ou um clone com schema atualizado via `prisma migrate deploy`) — banco vazio ou antigo parece “app sem funcionalidades”.
 
 ---
 
