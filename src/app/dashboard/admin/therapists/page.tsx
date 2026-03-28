@@ -5,10 +5,11 @@ import { Button } from '@/components/ui/Button'
 import { Badge } from '@/components/ui/Badge'
 import { StarRating } from '@/components/ui/StarRating'
 import { formatCurrency, getAvatarUrl } from '@/lib/utils'
-import { CheckCircle, XCircle, Eye } from 'lucide-react'
+import { CheckCircle, XCircle, Eye, Download, FileText, AlertCircle } from 'lucide-react'
 import Image from 'next/image'
 import toast from 'react-hot-toast'
 import { useEffect, useState } from 'react'
+import { withAuth } from '@/lib/auth-fetch'
 
 interface Therapist {
   id: string
@@ -27,6 +28,8 @@ interface Therapist {
     reviewCount: number
     approved: boolean
     yearsExp: number | null
+    documentUrl: string | null
+    documentFileName: string | null
   } | null
 }
 
@@ -34,6 +37,31 @@ export default function AdminTherapistsPage() {
   const [therapists, setTherapists] = useState<Therapist[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'pending' | 'approved'>('pending')
+  const [docLoading, setDocLoading] = useState<string | null>(null)
+
+  const openTherapistDocument = async (userId: string, mode: 'view' | 'download', fileName: string | null) => {
+    setDocLoading(userId)
+    try {
+      const res = await fetch(`/api/documents/access?userId=${userId}`, withAuth())
+      const data = await res.json()
+      if (!data.success || !data.data?.signedUrl) {
+        toast.error(data.error || 'Não foi possível acessar o documento')
+        return
+      }
+      if (mode === 'view') {
+        window.open(data.data.signedUrl, '_blank', 'noopener,noreferrer')
+      } else {
+        const a = document.createElement('a')
+        a.href = data.data.signedUrl
+        a.download = fileName || data.data.fileName || 'documento'
+        a.click()
+      }
+    } catch {
+      toast.error('Erro ao acessar o documento')
+    } finally {
+      setDocLoading(null)
+    }
+  }
 
   useEffect(() => {
     loadTherapists()
@@ -158,7 +186,40 @@ export default function AdminTherapistsPage() {
                       </div>
                     )}
                   </div>
-                  <div className="flex items-center gap-2 flex-shrink-0">
+                  <div className="flex items-center gap-2 flex-shrink-0 flex-wrap justify-end">
+                    {/* Documento de identidade */}
+                    {therapist.therapistProfile?.documentUrl ? (
+                      <div className="flex items-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => openTherapistDocument(therapist.id, 'view', therapist.therapistProfile?.documentFileName ?? null)}
+                          loading={docLoading === therapist.id}
+                          title={therapist.therapistProfile.documentFileName || 'Ver documento'}
+                        >
+                          <FileText size={13} />
+                          Doc.
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => openTherapistDocument(therapist.id, 'download', therapist.therapistProfile?.documentFileName ?? null)}
+                          loading={docLoading === therapist.id}
+                          title="Baixar documento"
+                        >
+                          <Download size={13} />
+                        </Button>
+                      </div>
+                    ) : (
+                      <span
+                        title="Nenhum documento enviado"
+                        className="flex items-center gap-1 text-[11px] text-slate-400 bg-slate-100 px-2 py-1 rounded-lg"
+                      >
+                        <AlertCircle size={11} />
+                        Sem doc.
+                      </span>
+                    )}
+
                     {!therapist.therapistProfile?.approved && (
                       <Button
                         size="sm"

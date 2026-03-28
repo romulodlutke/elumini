@@ -121,11 +121,19 @@ export async function POST(request: NextRequest) {
           { status: 400 }
         )
       }
-      const { url, error: uploadError } = await uploadTherapistDocument(file, session.sub)
-      if (uploadError || !url) {
+      const { url, storagePath, error: uploadError } = await uploadTherapistDocument(file, session.sub)
+      if (uploadError || !url || !storagePath) {
         return NextResponse.json({ success: false, error: uploadError || 'Falha no upload' }, { status: 400 })
       }
-      return NextResponse.json({ success: true, data: { url, fileName: file.name } })
+      // Salva o storagePath e o nome do arquivo no perfil do terapeuta para acesso seguro posterior
+      await prisma.therapistProfile.update({
+        where: { id: profile.id },
+        data: {
+          documentUrl: storagePath,
+          documentFileName: file.name,
+        },
+      })
+      return NextResponse.json({ success: true, data: { url, storagePath, fileName: file.name } })
     }
 
     return NextResponse.json({ success: false, error: 'Tipo inválido' }, { status: 400 })

@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 import { useCallback, useEffect, useState } from 'react'
 import { withAuth } from '@/lib/auth-fetch'
 import { useTherapistUnifiedUpload } from '@/hooks/useTherapistUnifiedUpload'
-import { X, Plus, Save, Upload, FileText, ExternalLink, Trash2, Briefcase, Pencil, User, Camera, Phone, DollarSign, CreditCard } from 'lucide-react'
+import { X, Plus, Save, Upload, FileText, ExternalLink, Trash2, Briefcase, Pencil, User, Camera, Phone, DollarSign, CreditCard, Eye, Download, CheckCircle2, Clock } from 'lucide-react'
 import { THERAPY_OPTIONS } from '@/constants/therapies'
 
 interface TherapistService {
@@ -73,6 +73,9 @@ export default function TerapeutaPerfilPage() {
   const [allowAutoScheduling, setAllowAutoScheduling] = useState(false)
   const [certificateFiles, setCertificateFiles] = useState<{ id: string; name: string; fileUrl: string }[]>([])
   const [documentUploadLabel, setDocumentUploadLabel] = useState<string | null>(null)
+  const [documentFileName, setDocumentFileName] = useState<string | null>(null)
+  const [documentExists, setDocumentExists] = useState(false)
+  const [documentLoading, setDocumentLoading] = useState(false)
 
   const profileLoaded = !loadingProfile && !!profile
 
@@ -90,6 +93,8 @@ export default function TerapeutaPerfilPage() {
     },
     onDocumentSuccess: (fileName) => {
       setDocumentUploadLabel(fileName)
+      setDocumentFileName(fileName)
+      setDocumentExists(true)
       toast.success('Documento enviado com sucesso!')
     },
     onError: (msg) => toast.error(msg),
@@ -212,6 +217,8 @@ export default function TerapeutaPerfilPage() {
         baseCurrency?: string | null
         allowPromos?: boolean
         minPromoPrice?: unknown
+        documentUrl?: string | null
+        documentFileName?: string | null
       } | null
 
       const snapshot: LoadedTherapistProfile = {
@@ -262,8 +269,17 @@ export default function TerapeutaPerfilPage() {
         setBaseCurrency(tp.baseCurrency || 'BRL')
         setAllowPromos(tp.allowPromos ?? false)
         setMinPromoPrice(tp.minPromoPrice != null ? String(tp.minPromoPrice) : '')
+        // Estado do documento de identidade
+        const hasDoc = !!tp.documentUrl
+        setDocumentExists(hasDoc)
+        setDocumentFileName(tp.documentFileName || null)
+        if (hasDoc && tp.documentFileName) {
+          setDocumentUploadLabel(tp.documentFileName)
+        }
       } else {
         setProfileId(null)
+        setDocumentExists(false)
+        setDocumentFileName(null)
       }
     } catch (e) {
       console.error('Erro ao carregar perfil:', e)
@@ -279,6 +295,31 @@ export default function TerapeutaPerfilPage() {
   useEffect(() => {
     loadProfile()
   }, [loadProfile])
+
+  /** Obtém URL assinada e abre/baixa o documento */
+  const openDocument = async (mode: 'view' | 'download') => {
+    setDocumentLoading(true)
+    try {
+      const res = await fetch('/api/documents/access', withAuth())
+      const data = await res.json()
+      if (!data.success || !data.data?.signedUrl) {
+        toast.error(data.error || 'Não foi possível acessar o documento')
+        return
+      }
+      if (mode === 'view') {
+        window.open(data.data.signedUrl, '_blank', 'noopener,noreferrer')
+      } else {
+        const a = document.createElement('a')
+        a.href = data.data.signedUrl
+        a.download = data.data.fileName || 'documento'
+        a.click()
+      }
+    } catch {
+      toast.error('Erro ao acessar o documento')
+    } finally {
+      setDocumentLoading(false)
+    }
+  }
 
   useEffect(() => {
     if (!profileId) return
@@ -697,23 +738,71 @@ export default function TerapeutaPerfilPage() {
               <Input label="Estado (UF)" value={state} onChange={(e) => setState(e.target.value)} placeholder="SP" maxLength={2} />
               <Input label="Nacionalidade" value={nationality} onChange={(e) => setNationality(e.target.value)} placeholder="Ex.: Brasileira" />
               <Input label="Idioma(s) que fala" value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Ex.: Português, Inglês" />
-              <div className="sm:col-span-2 space-y-2">
+              <div className="sm:col-span-2 space-y-3">
                 <Input label="Documento de identidade / Passaporte" value={documentId} onChange={(e) => setDocumentId(e.target.value)} placeholder="Número do documento" />
-                <div className="flex flex-wrap items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={() => pickFile('document')}
-                    disabled={uploadBusy || !canCertOrDocUpload}
-                    className="inline-flex items-center gap-2 px-3 py-2 rounded-xl border border-surface-200 bg-surface-50 text-xs font-medium text-slate-700 hover:bg-surface-100 transition-colors disabled:opacity-50"
-                  >
-                    <Upload size={14} />
-                    {isUploading ? 'Enviando...' : 'Enviar PDF ou imagem (comprovante)'}
-                  </button>
-                  {documentUploadLabel && (
-                    <span className="text-xs text-slate-600 truncate max-w-[220px]" title={documentUploadLabel}>
-                      Arquivo: {documentUploadLabel}
-                    </span>
+
+                {/* Upload + status do arquivo */}
+                <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-slate-700">Comprovante de identidade</p>
+                    {documentExists ? (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-2.5 py-1">
+                        <Clock size={11} />
+                        Aguardando validação
+                      </span>
+                    ) : (
+                      <span className="text-[11px] text-slate-400">Nenhum arquivo enviado</span>
+                    )}
+                  </div>
+
+                  {documentExists && documentFileName && (
+                    <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-lg px-3 py-2">
+                      <FileText size={14} className="text-slate-400 flex-shrink-0" />
+                      <span className="text-xs text-slate-700 truncate flex-1" title={documentFileName}>
+                        {documentFileName}
+                      </span>
+                      <span className="text-[10px] text-green-600 font-medium flex items-center gap-1 flex-shrink-0">
+                        <CheckCircle2 size={11} />
+                        Enviado
+                      </span>
+                    </div>
                   )}
+
+                  <div className="flex flex-wrap gap-2">
+                    <button
+                      type="button"
+                      onClick={() => pickFile('document')}
+                      disabled={uploadBusy || !canCertOrDocUpload}
+                      className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                    >
+                      <Upload size={13} />
+                      {isUploading ? 'Enviando...' : documentExists ? 'Substituir arquivo' : 'Enviar PDF ou imagem'}
+                    </button>
+
+                    {documentExists && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => openDocument('view')}
+                          disabled={documentLoading}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                        >
+                          <Eye size={13} />
+                          Ver documento
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => openDocument('download')}
+                          disabled={documentLoading}
+                          className="inline-flex items-center gap-2 px-3 py-2 rounded-lg border border-slate-200 bg-white text-xs font-medium text-slate-700 hover:bg-slate-50 transition-colors disabled:opacity-50"
+                        >
+                          <Download size={13} />
+                          Baixar
+                        </button>
+                      </>
+                    )}
+                  </div>
+                  <p className="text-[11px] text-slate-400">Aceito: PDF, JPG ou PNG (máx. 10MB). Visível apenas para você e administradores.</p>
                 </div>
               </div>
             </div>

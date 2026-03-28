@@ -29,6 +29,7 @@ export async function GET(request: NextRequest) {
             select: {
               id: true, therapies: true, price: true, modality: true,
               city: true, rating: true, reviewCount: true, approved: true, yearsExp: true,
+              documentUrl: true, documentFileName: true,
             },
           },
           patientProfile: { select: { id: true, gender: true } },

@@ -103,7 +103,9 @@ model TherapistProfile {
   country               String?  // País
   nationality           String?  // Nacionalidade
   professionalName      String?  // Nome como deseja aparecer publicamente
-  documentId            String?  // Documento de identidade / Passaporte
+  documentId            String?  // Número do documento de identidade / Passaporte
+  documentUrl           String?  // Storage path no bucket 'documents' (ex: documents/{userId}/file.pdf)
+  documentFileName      String?  // Nome original do arquivo enviado
   rating                 Float    @default(0)
   reviewCount            Int      @default(0)
   approved               Boolean  @default(false)

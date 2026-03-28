@@ -146,20 +146,25 @@ export async function uploadCertificate(
   }
 }
 
-/** Documentos gerais (comprovantes) — pasta lógica `documents/{userId}/` no bucket documents. */
+/**
+ * Documentos de identidade do terapeuta (RG, CNH, Passaporte).
+ * Retorna a URL pública E o storagePath (necessário para signed URLs).
+ * Path no bucket: documents/{userId}/{timestamp}-{fileName}
+ */
 export async function uploadTherapistDocument(
   file: File,
   userId: string
-): Promise<{ url: string | null; error: string | null }> {
+): Promise<{ url: string | null; storagePath: string | null; error: string | null }> {
   if (!storageConfigured()) {
     return {
       url: null,
+      storagePath: null,
       error:
         'Armazenamento não configurado (NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY).',
     }
   }
   if (!isAllowedUnifiedFile(file.type)) {
-    return { url: null, error: 'Use apenas PDF, JPG ou PNG.' }
+    return { url: null, storagePath: null, error: 'Use apenas PDF, JPG ou PNG.' }
   }
   const safeName = file.name.replace(/[^a-zA-Z0-9.-]/g, '_').slice(0, 80)
   const fileName = `${Date.now()}-${safeName}`
@@ -171,18 +176,46 @@ export async function uploadTherapistDocument(
       .upload(filePath, file, { upsert: false })
 
     if (error) {
-      return { url: null, error: friendlyStorageError(error.message) }
+      return { url: null, storagePath: null, error: friendlyStorageError(error.message) }
     }
 
     const { data } = supabaseAdmin.storage.from(STORAGE_BUCKETS.DOCUMENTS).getPublicUrl(filePath)
 
-    return { url: data.publicUrl, error: null }
+    return { url: data.publicUrl, storagePath: filePath, error: null }
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e)
     if (process.env.NODE_ENV === 'development') {
       console.error('[uploadTherapistDocument]', e)
     }
-    return { url: null, error: friendlyStorageError(msg) || 'Falha de rede no upload' }
+    return { url: null, storagePath: null, error: friendlyStorageError(msg) || 'Falha de rede no upload' }
+  }
+}
+
+/**
+ * Gera uma URL assinada temporária para um documento no bucket 'documents'.
+ * Funciona com service_role, independente das RLS policies do bucket.
+ * @param storagePath  Caminho relativo ao bucket (ex: "documents/userId/file.pdf")
+ * @param expiresIn    Segundos de validade. Padrão: 3600 (1h)
+ */
+export async function createSignedDocumentUrl(
+  storagePath: string,
+  expiresIn = 3600
+): Promise<{ signedUrl: string | null; error: string | null }> {
+  if (!storageConfigured()) {
+    return { signedUrl: null, error: 'Armazenamento não configurado.' }
+  }
+  try {
+    const { data, error } = await supabaseAdmin.storage
+      .from(STORAGE_BUCKETS.DOCUMENTS)
+      .createSignedUrl(storagePath, expiresIn)
+
+    if (error || !data?.signedUrl) {
+      return { signedUrl: null, error: friendlyStorageError(error?.message) || 'Falha ao gerar URL assinada' }
+    }
+    return { signedUrl: data.signedUrl, error: null }
+  } catch (e) {
+    const msg = e instanceof Error ? e.message : String(e)
+    return { signedUrl: null, error: friendlyStorageError(msg) || 'Falha ao gerar URL assinada' }
   }
 }
 
