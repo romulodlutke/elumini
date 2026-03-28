@@ -11,6 +11,8 @@ import { withAuth } from '@/lib/auth-fetch'
 import { useTherapistUnifiedUpload } from '@/hooks/useTherapistUnifiedUpload'
 import { X, Plus, Save, Upload, FileText, ExternalLink, Trash2, Briefcase, Pencil, User, Camera, Phone, DollarSign, CreditCard, Eye, Download, CheckCircle2, Clock } from 'lucide-react'
 import { THERAPY_OPTIONS } from '@/constants/therapies'
+import { normalizeLanguagesFromServer } from '@/constants/languages'
+import { LanguageMultiSelect } from '@/components/therapist/LanguageMultiSelect'
 
 interface TherapistService {
   id: string
@@ -46,7 +48,7 @@ export default function TerapeutaPerfilPage() {
   const [country, setCountry] = useState('')
   const [nationality, setNationality] = useState('')
   const [documentId, setDocumentId] = useState('')
-  const [languages, setLanguages] = useState('')
+  const [languages, setLanguages] = useState<string[]>(['Português'])
   const [bio, setBio] = useState('')
   const [price, setPrice] = useState('')
   const [modality, setModality] = useState('AMBOS')
@@ -245,7 +247,7 @@ export default function TerapeutaPerfilPage() {
         setCountry(tp.country || '')
         setNationality(tp.nationality || '')
         setDocumentId(tp.documentId || '')
-        setLanguages(tp.languages?.length ? tp.languages.join(', ') : 'Português')
+        setLanguages(normalizeLanguagesFromServer(tp.languages))
         setBio(tp.bio || '')
         setPrice(String(tp.price ?? ''))
         setModality(tp.modality || 'AMBOS')
@@ -546,7 +548,7 @@ export default function TerapeutaPerfilPage() {
         professionalName: professionalName || null,
         nationality: nationality || null,
         documentId: documentId || null,
-        languages: languages ? languages.split(',').map((s) => s.trim()).filter(Boolean) : undefined,
+        languages: languages.length ? languages : ['Português'],
         therapies: selectedTherapies,
         certifications,
         wantCampaigns,
@@ -737,7 +739,14 @@ export default function TerapeutaPerfilPage() {
               <Input label="Cidade" value={city} onChange={(e) => setCity(e.target.value)} />
               <Input label="Estado (UF)" value={state} onChange={(e) => setState(e.target.value)} placeholder="SP" maxLength={2} />
               <Input label="Nacionalidade" value={nationality} onChange={(e) => setNationality(e.target.value)} placeholder="Ex.: Brasileira" />
-              <Input label="Idioma(s) que fala" value={languages} onChange={(e) => setLanguages(e.target.value)} placeholder="Ex.: Português, Inglês" />
+              <div className="sm:col-span-2">
+                <LanguageMultiSelect
+                  label="Idioma(s) que fala"
+                  value={languages}
+                  onChange={setLanguages}
+                  disabled={uploadBusy}
+                />
+              </div>
               <div className="sm:col-span-2 space-y-3">
                 <Input label="Documento de identidade / Passaporte" value={documentId} onChange={(e) => setDocumentId(e.target.value)} placeholder="Número do documento" />
 
