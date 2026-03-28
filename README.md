@@ -21,6 +21,15 @@ Marketplace SaaS de terapias holísticas — conectando pacientes a terapeutas c
 
 ---
 
+## Deploy na Vercel
+
+1. **Variáveis de ambiente** (Project → Settings → Environment Variables), espelhando o `.env.example`: `DATABASE_URL`, `DIRECT_URL`, `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, `JWT_SECRET`, `JWT_REFRESH_SECRET`, `NEXT_PUBLIC_APP_URL` (URL pública `https://seu-dominio.vercel.app` ou domínio próprio). Opcionais: WhatsApp (`ULTRAMSG_INSTANCE_ID`, `ULTRAMSG_TOKEN`, `THERAPIST_WHATSAPP_NUMBER`), SMTP.
+2. **Supabase Storage**: buckets `documents` e `avatars` (públicos, se usar URLs públicas).
+3. **Build**: `npm run build` (Prisma generate + Next build). Na Vercel, o `postinstall` já roda `prisma generate`.
+4. **Redeploy**: Dashboard → Deployments → **⋯** no último deploy → **Redeploy**, ou faça push em `main`.
+
+---
+
 ## Pré-requisitos
 
 - Node.js 18+
